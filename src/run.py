@@ -1,8 +1,10 @@
 ################
 # Main Run Class.
 ################
+import argparse
+from datetime import datetime
 from .train import train
-from .utils import parse_args, load_config_file, load_csv_cfgs, overwrite_cfg, set_def_args
+from .utils import load_config_file, load_csv_cfgs, overwrite_cfg, get_device
 
 '''
 Train loop
@@ -10,6 +12,20 @@ Init wandb(utils)/close
 cfg file selector
 "Store final models" >> later
 '''
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Run Infinite GAN training.")
+    parser.add_argument("--use_wandb", action="store_true", help="Enable wandb logging.")
+    parser.add_argument("--online", action="store_true", help="Set wandb mode to online")
+    parser.add_argument("--cfg_name", type=str, default="default", help="Config file name.")
+    parser.add_argument("--multirun_cfg", type=str, default=None, help="Multi-run config file.")
+    return parser.parse_args()
+
+def set_def_args(config, args):
+    config.use_wandb = args.use_wandb
+    config.wandb_online = args.online
+    config.device = get_device()
+    config.timestamp = datetime.now().strftime("%m/%d")
 
 
 def main():

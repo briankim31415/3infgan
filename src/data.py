@@ -1,5 +1,6 @@
 import torch
 import torchcde
+import torchsde
 
 from .utils import remove_ts, append_ts
 
@@ -33,7 +34,7 @@ class Data():
         self.std = []
         self.ts = torch.linspace(0, cfg.t_size - 1, cfg.t_size, device=cfg.device)
 
-        self.dataloader = self.create_dataloader()
+        self.data_size, self.dataloader = self.create_dataloader()
         self.infinite_train_dataloader = (elem for it in iter(lambda: self.dataloader, None) for elem in it)
 
     def create_dataloader(self):
@@ -42,6 +43,11 @@ class Data():
         '''
         Get the data (OU, dataset)
         '''
+        if self.cfg.data_source == "ou_proc":
+            sde_gen = OrnsteinUhlenbeckSDE(mu=0.02, theta=0.1, sigma=0.4, t_size=self.cfg.t_size).to(self.cfg.device)
+            y0 = torch.rand(self.cfg.dataset_size, device=self.cfg.device).unsqueeze(-1) * 2 - 1
+            ts = torch.linspace(0, self.cfg.t_size - 1, self.cfg.t_size, device=self.cfg.device)
+            ys = torchsde.sdeint(sde_gen, y0, ts, dt=1e-1)
 
         ###################
         # To demonstrate how to handle irregular data, then here we additionally drop some of the data (by setting it to
@@ -58,12 +64,16 @@ class Data():
         ###################
         y0_flat = ys[0].view(-1)
         y0_not_nan = y0_flat.masked_select(~torch.isnan(y0_flat))
-        ys = (ys - y0_not_nan.mean()) / y0_not_nan.std()
+        mean = y0_not_nan.mean()
+        std = y0_not_nan.std()
+        ys = (ys - mean) / std
+        self.mean.append(mean.item())
+        self.std.append(std.item())
 
         ###################
         # As discussed, time must be included as a channel for the discriminator.
         ###################
-        ys = torch.cat([self.ts.unsqueeze(0).unsqueeze(-1).expand(dataset_size, self.cfg.t_size, 1),
+        ys = torch.cat([self.ts.unsqueeze(0).unsqueeze(-1).expand(self.cfg.dataset_size, self.cfg.t_size, 1),
                         ys.transpose(0, 1)], dim=2)
         # shape (dataset_size=1000, t_size=100, 1 + data_size=3)
 
@@ -75,7 +85,7 @@ class Data():
         dataset = torch.utils.data.TensorDataset(ys_coeffs)
         dataloader = torch.utils.data.DataLoader(dataset, batch_size=self.cfg.batch_size, shuffle=True)
 
-        return dataloader
+        return data_size, dataloader
 
     def next(self):
         real_data, = next(self.infinite_train_dataloader)
@@ -83,12 +93,18 @@ class Data():
 
     def get_fake_samples(self, generator):
         fake_samples = remove_ts(generator(self.ts, self.cfg.batch_size))
-        std = self.std.view(1, 1, -1)
-        mean = self.mean.view(1, 1, -1)
-        return append_ts(fake_samples * std + mean)
+        # std = self.std.view(1, 1, -1)
+        # mean = self.mean.view(1, 1, -1)
+        std = self.std[0]
+        mean = self.mean[0]
+        return append_ts(self.ts, fake_samples * std + mean)
 
-    def get_real_samples(self):
-        real_data = remove_ts(self.next())
-        std = self.std.view(1, 1, -1)
-        mean = self.mean.view(1, 1, -1)
-        return append_ts(real_data * std + mean)
+    # def get_real_samples(self):
+    #     real_data = remove_ts(self.next())
+    #     # std = self.std.view(1, 1, -1)
+    #     # mean = self.mean.view(1, 1, -1)
+    #     std = self.std[0]
+    #     mean = self.mean[0]
+    #     return append_ts(self.ts, real_data * std + mean)
+
+    

@@ -36,6 +36,8 @@ class Discriminator(torch.nn.Module):
         self._func = DiscriminatorFunc(data_size, hidden_size, mlp_size, num_layers)
         self._readout = torch.nn.Linear(hidden_size, 1)
 
+        self.h0 = None
+
     def forward(self, ys_coeffs):
         # ys_coeffs has shape (batch_size, t_size, 1 + data_size)
         # The +1 corresponds to time. When solving CDEs, It turns out to be most natural to treat time as just another
@@ -44,8 +46,8 @@ class Discriminator(torch.nn.Module):
 
         Y = torchcde.LinearInterpolation(ys_coeffs)
         Y0 = Y.evaluate(Y.interval[0])
-        h0 = self._initial(Y0)
-        hs = torchcde.cdeint(Y, self._func, h0, Y.interval, method='reversible_heun', backend='torchsde', dt=1.0,
+        self.h0 = self._initial(Y0)
+        hs = torchcde.cdeint(Y, self._func, self.h0, Y.interval, method='reversible_heun', backend='torchsde', dt=1.0,
                              adjoint_method='adjoint_reversible_heun',
                              adjoint_params=(ys_coeffs,) + tuple(self._func.parameters()))
         score = self._readout(hs[:, -1])

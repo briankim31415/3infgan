@@ -7,7 +7,7 @@ from .data import Data
 from .generator import Generator
 from .discriminator import Discriminator
 from .losses import discriminator_loss, generator_loss
-from .utils import start_wandb, close_wandb
+from .utils import start_wandb, close_wandb, set_seed, plot_wandb_samples
 
 '''
 Init g/d
@@ -19,16 +19,20 @@ Call losses
 
 
 def train(cfg):
+    set_seed(cfg.seed)
     start_wandb(cfg)
     
     data_loader = Data(cfg)
     ts = data_loader.ts
+    data_size = data_loader.data_size
 
-    generator = Generator()
-    discriminator = Discriminator()
+    generator = Generator(data_size, cfg.initial_noise_size, cfg.noise_size, cfg.hidden_size, cfg.mlp_size, cfg.num_layers).to(cfg.device)
+    discriminator = Discriminator(data_size, cfg.hidden_size, cfg.mlp_size, cfg.num_layers).to(cfg.device)
 
     averaged_generator = swa_utils.AveragedModel(generator)
     averaged_discriminator = swa_utils.AveragedModel(discriminator)
+    # swa_scheduler_g = SWALR(g_optimizer, swa_lr=cfg.eta_g * 0.1)
+    # swa_scheduler_d = SWALR(d_optimizer, swa_lr=cfg.eta_d * 0.1)
 
     # TODO WHAT DOES THIS DO??
     with torch.no_grad():
@@ -42,52 +46,112 @@ def train(cfg):
 
     trange = tqdm.tqdm(range(cfg.num_steps))
     for step in trange:
+        # Update discriminator 5 times per generator update
         for _ in range(cfg.d_updates_per_g):
-            dis_optm.zero_grad()
+            # Get real and fake data
+            real_data = data_loader.next()
+            with torch.no_grad():
+                fake_data = generator(ts, cfg.batch_size)
 
-            fake_data = generator(ts, cfg.batch_size)
-
-            real_data = data_loader.get_real_samples()
-
+            # Get real and fake scores
             real_score = discriminator(real_data)
             fake_score = discriminator(fake_data)
 
+            # Get discriminator loss (fake_score - real_score)
             dis_loss = discriminator_loss(real_score, fake_score)
-
             dis_loss.backward()
+
             dis_optm.step()
             dis_optm.zero_grad()
 
+            ###################
+            # TODO: MOVE TO ANOTHER FILE?
+            ###################
+            # We constrain the Lipschitz constant of the discriminator using carefully-chosen clipping (and the use of
+            # LipSwish activation functions).
+            ###################
+            with torch.no_grad():
+                for module in discriminator.modules():
+                    if isinstance(module, torch.nn.Linear):
+                        lim = 1 / module.out_features
+                        module.weight.clamp_(-lim, lim)
+
+        # Get fake data and score
         fake_data = generator(ts, cfg.batch_size)
         fake_score = discriminator(fake_data)
 
+        # Get generator loss
         gen_loss = generator_loss(fake_score)
-
         gen_loss.backward()
-        gen_optm.step()
 
         # TODO WHAT DOES THIS DO??
         for param in generator.parameters():
             param.grad *= -1
-        
-        gen_optm.step()
-        dis_optm.step()
-        gen_optm.zero_grad()
-        dis_optm.zero_grad()
 
-        ###################
-        # We constrain the Lipschitz constant of the discriminator using carefully-chosen clipping (and the use of
-        # LipSwish activation functions).
-        ###################
-        with torch.no_grad():
-            for module in discriminator.modules():
-                if isinstance(module, torch.nn.Linear):
-                    lim = 1 / module.out_features
-                    module.weight.clamp_(-lim, lim)
+        gen_optm.step()
+        gen_optm.zero_grad()
+
 
         # Stochastic weight averaging typically improves performance.
-        if step > cfg.swa_step_start:
+        if step > cfg.swa_step_start: # TODO: make this a multiple of a config param (i.e. cfg.0.5 * steps)
             averaged_generator.update_parameters(generator)
             averaged_discriminator.update_parameters(discriminator)
+            # swa_scheduler_g.step()
+            # swa_scheduler_d.step()
+        
+        # Logging
+        if step % cfg.log_interval == 0:
+            metrics = {
+                'discriminator_loss': dis_loss.item(),
+                'generator_loss': gen_loss.item(),
+                'real_score_mean': real_score.item(),
+                'fake_score_mean': fake_score.item(),
+                'step': step
+            }
+            trange.set_postfix({k: f"{v:.4f}" for k, v in metrics.items()})
+
+            if cfg.use_wandb:
+                ################
+                # PROBING
+                ################
+                # MODULE A: V ~ N(0,I_v)
+                # wandb.log({
+                #     'probe/moduleA_v_mean': generator.noise.mean().item(),
+                #     'probe/moduleA_v_std': generator.noise.std().item()
+                # })
+                    
+                # MODULE B: X_0
+                wandb.log({
+                    'probe/moduleB_x0_mean': generator.x0.mean().item(),
+                    'probe/moduleB_x0_std': generator.x0.std().item()
+                })
+
+                # MODULE E: Y
+                wandb.log({
+                    'probe/moduleE_y_fake_mean': fake_data[..., 1].mean().item(),
+                    'probe/moduleE_y_real_mean': real_data[..., 1].mean().item(),
+                    'probe/moduleE_y_fake_std': fake_data[..., 1].std().item(),
+                    'probe/moduleE_y_real_std': real_data[..., 1].std().item()
+                })
+
+                # MODULE F: H_0
+                wandb.log({
+                    'probe/moduleF_h0_mean': discriminator.h0.mean().item(),
+                    'probe/moduleF_h0_std': discriminator.h0.std().item()
+                })
+
+                # MODULE H: D
+                wandb.log({
+                    # 'probe/moduleH_d_mean': d_fake.mean().item(),
+                    # 'probe/moduleH_d_std': d_fake.std().item()
+                    'probe/moduleH_d_mean': fake_score.item(),
+                    'probe/moduleH_d_std': fake_score.item()
+                })
+                ################
+            
+        if step % cfg.samples_interval == 0 and cfg.use_wandb:
+            plot_wandb_samples(cfg, ts, generator, data_loader, step)
 
     close_wandb(cfg)
+
+    return generator, discriminator

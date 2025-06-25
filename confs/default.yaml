@@ -1,19 +1,41 @@
-device: cuda
-num_steps: 10000
-batch_size: 1
-init_mult1: 1
-init_mult2: 1
-generator_lr: 1
-discriminator_lr: 1
-weight_decay: 1
+# Architectural
+initial_noise_size: 5
+noise_size: 5
+hidden_size: 16
+mlp_size: 16
+num_layers: 1
 
+# Training hyperparams
+generator_lr: 2.0e-4
+discriminator_lr: 1.0e-3
+batch_size: 1024
+num_steps: 10000
+init_mult1: 3
+init_mult2: 0.5
+weight_decay: 0.01
+swa_step_start: 5000
+
+# Evaluation and plotting hyperparameters
+steps_per_print: 10 # How often to print the loss.
+num_plot_samples: 50 # How many samples to use on the plots at the end.
+plot_locs: [0.1, 0.3, 0.5, 0.7, 0.9] # Plot some marginal distributions at this proportion of the way along.
+
+# DBG
+device: cuda
+data_source: ou_proc
+dataset_size: 8192
+seed: 0
+d_updates_per_g: 5
+t_size: 32
+
+# W&B
+log_interval: 100
+eval_interval: 500
+samples_interval: 1000
+save_interval: 2000
 use_wandb: false
 wandb_online: false
-wandb_proj: hi
-wandb_name: hi
-config_name: hi
-wandb_date_tag: 1
+wandb_proj: 3infgan
+wandb_name: test
+config_name: cfg
 timestamp: None
-
-num_features: 1
-data_source: ou_proc

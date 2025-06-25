@@ -48,6 +48,8 @@ class Generator(torch.nn.Module):
         self._func = GeneratorFunc(noise_size, hidden_size, mlp_size, num_layers)
         self._readout = torch.nn.Linear(hidden_size, data_size)
 
+        self.x0 = None
+
     def forward(self, ts, batch_size):
         # ts has shape (t_size,) and corresponds to the points we want to evaluate the SDE at.
 
@@ -55,12 +57,12 @@ class Generator(torch.nn.Module):
         # Actually solve the SDE.
         ###################
         init_noise = torch.randn(batch_size, self._initial_noise_size, device=ts.device)
-        x0 = self._initial(init_noise)
+        self.x0 = self._initial(init_noise)
 
         ###################
         # We use the reversible Heun method to get accurate gradients whilst using the adjoint method.
         ###################
-        xs = torchsde.sdeint_adjoint(self._func, x0, ts, method='reversible_heun', dt=1.0,
+        xs = torchsde.sdeint_adjoint(self._func, self.x0, ts, method='reversible_heun', dt=1.0,
                                      adjoint_method='adjoint_reversible_heun',)
         xs = xs.transpose(0, 1)
         ys = self._readout(xs)

@@ -1,5 +1,5 @@
 import torch
-import torch.optim.swa_utils as swa_utils
+from torch.optim.swa_utils import AveragedModel, SWALR
 import tqdm
 import wandb
 
@@ -7,7 +7,8 @@ from .data import Data
 from .generator import Generator
 from .discriminator import Discriminator
 from .losses import discriminator_loss, generator_loss, evaluate_loss
-from .utils import start_wandb, close_wandb, set_seed, plot_wandb_samples
+from .logging import start_wandb, close_wandb, plot_wandb_samples
+from .utils import set_seed
 
 '''
 Init g/d
@@ -29,10 +30,13 @@ def train(cfg):
     generator = Generator(data_size, cfg.initial_noise_size, cfg.noise_size, cfg.hidden_size, cfg.mlp_size, cfg.num_layers, cfg.g_dt).to(cfg.device)
     discriminator = Discriminator(data_size, cfg.hidden_size, cfg.mlp_size, cfg.num_layers, cfg.d_dt).to(cfg.device)
 
-    averaged_generator = swa_utils.AveragedModel(generator)
-    averaged_discriminator = swa_utils.AveragedModel(discriminator)
-    # swa_scheduler_g = SWALR(g_optimizer, swa_lr=cfg.eta_g * 0.1)
-    # swa_scheduler_d = SWALR(d_optimizer, swa_lr=cfg.eta_d * 0.1)
+    gen_optm = torch.optim.Adadelta(generator.parameters(), lr=cfg.generator_lr, weight_decay=cfg.weight_decay)
+    dis_optm = torch.optim.Adadelta(discriminator.parameters(), lr=cfg.discriminator_lr, weight_decay=cfg.weight_decay)
+
+    averaged_generator = AveragedModel(generator)
+    averaged_discriminator = AveragedModel(discriminator)
+    swa_scheduler_g = SWALR(gen_optm, swa_lr=cfg.generator_lr * 0.1)
+    swa_scheduler_d = SWALR(dis_optm, swa_lr=cfg.discriminator_lr * 0.1)
 
     # TODO UPDATE THESE PARAMETERS
     # Picking a good initialisation is important!
@@ -46,9 +50,6 @@ def train(cfg):
             param *= cfg.init_mult1
         for param in generator._func.parameters():
             param *= cfg.init_mult2
-
-    gen_optm = torch.optim.Adadelta(generator.parameters(), lr=cfg.generator_lr, weight_decay=cfg.weight_decay)
-    dis_optm = torch.optim.Adadelta(discriminator.parameters(), lr=cfg.discriminator_lr, weight_decay=cfg.weight_decay)
 
     trange = tqdm.tqdm(range(cfg.num_steps))
     for step in trange:
@@ -82,6 +83,8 @@ def train(cfg):
             if step > cfg.swa_step_start: # TODO: make this a multiple of a config param (i.e. cfg.0.5 * steps)
                 averaged_generator.update_parameters(generator)
                 averaged_discriminator.update_parameters(discriminator)
+                swa_scheduler_g.step()
+                swa_scheduler_d.step()
 
             if step % cfg.log_interval == 0:
                 total_unavg_loss = evaluate_loss(ts, cfg.batch_size, data_loader.dataloader, generator, discriminator)
@@ -208,8 +211,8 @@ def train(cfg):
             if step > cfg.swa_step_start: # TODO: make this a multiple of a config param (i.e. cfg.0.5 * steps)
                 averaged_generator.update_parameters(generator)
                 averaged_discriminator.update_parameters(discriminator)
-                # swa_scheduler_g.step()
-                # swa_scheduler_d.step()
+                swa_scheduler_g.step()
+                swa_scheduler_d.step()
             
             # Logging
             if step % cfg.log_interval == 0:

@@ -1,9 +1,9 @@
 # Architectural
-initial_noise_size: 5
-noise_size: 5
-hidden_size: 16
-mlp_size: 16
-num_layers: 1
+initial_noise_size: 10
+noise_size: 10
+hidden_size: 96
+mlp_size: 64
+num_layers: 2
 
 # Training hyperparams
 generator_lr: 2.0e-4
@@ -14,6 +14,10 @@ init_mult1: 3
 init_mult2: 0.5
 weight_decay: 0.01
 swa_step_start: 5000
+dataset_size: 8192
+t_size: 64 # Sample size
+g_dt: 1.0
+d_dt: 1.0
 
 # Evaluation and plotting hyperparameters
 steps_per_print: 10 # How often to print the loss.
@@ -23,11 +27,10 @@ plot_locs: [0.1, 0.3, 0.5, 0.7, 0.9] # Plot some marginal distributions at this 
 # DBG
 device: cuda
 data_source: ou_proc
-dataset_size: 8192
 seed: 0
 d_updates_per_g: 5
-t_size: 32
 data_col: None
+basic: true
 
 # W&B
 log_interval: 100

@@ -1,7 +1,8 @@
 data_source: weather
 data_col: T (degC)
+t_size: 24 # Sample size
 
 # W&B
 wandb_proj: 3infgan
 wandb_name: test
-config_name: cfg
+config_name: weather_test

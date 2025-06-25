@@ -48,7 +48,7 @@ def get_device():
         print("Warning: CUDA not available; falling back to CPU.")
         return 'cpu'
 
-def plot_wandb_samples(cfg, ts, generator, data_loader, step):
+def plot_wandb_samples(cfg, ts, generator, data_loader, step, avg=False):
     num_plot_samples = cfg.num_plot_samples
 
     # Get real and fake data
@@ -56,9 +56,11 @@ def plot_wandb_samples(cfg, ts, generator, data_loader, step):
     assert num_plot_samples <= real_data.size(0)
     real_data = torchcde.LinearInterpolation(real_data).evaluate(ts)
 
+    generator.eval()
     with torch.no_grad():
         generated_data = generator(ts, real_data.size(0)).cpu()
     generated_data = torchcde.LinearInterpolation(generated_data).evaluate(ts)
+    generator.train()
 
 
     real_data = real_data[:num_plot_samples]
@@ -74,17 +76,17 @@ def plot_wandb_samples(cfg, ts, generator, data_loader, step):
     real_data = real_data * data_loader.std[0] + data_loader.mean[0]
     generated_data = generated_data * data_loader.std[0].cpu() + data_loader.mean[0].cpu()
 
-    for j, real_single in enumerate(real_data):
+    for j, real_sample_ in enumerate(real_data):
         kwargs = {'label': 'Real'} if j == 0 else {}
-        plt.plot(ts.cpu(), real_single.cpu(), color='dodgerblue', linewidth=0.5, alpha=0.7, **kwargs)
+        plt.plot(ts.cpu(), real_sample_[:, 1].cpu(), color='dodgerblue', linewidth=0.5, alpha=0.7, **kwargs)
     for j, generated_sample_ in enumerate(generated_data):
         kwargs = {'label': 'Generated'} if j == 0 else {}
-        plt.plot(ts.cpu(), generated_sample_.cpu(), color='crimson', linewidth=0.5, alpha=0.7, **kwargs)
+        plt.plot(ts.cpu(), generated_sample_[:, 1].cpu(), color='crimson', linewidth=0.5, alpha=0.7, **kwargs)
     plt.legend()
-    plt.title(f"Step {step}: {num_plot_samples} samples from both real and generated distributions.")
+    plt.title(f"{'[AVG] ' if avg else ''}Step {step}: {num_plot_samples} samples from both real and generated distributions.")
     # plt.savefig(f'{cfg.output_dir}/samples_{i+1}.png')
     fig = wandb.Image(plt)
-    wandb.log({'samples': fig})
+    wandb.log({'Averaged model samples': fig} if avg else {'Samples': fig})
     plt.close()
 
 def start_wandb(cfg):

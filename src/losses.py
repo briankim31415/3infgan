@@ -36,6 +36,8 @@ def apply_weight_clipping(model, clip_value=0.01):
         p.data.clamp_(-clip_value, clip_value)
 
 def evaluate_loss(ts, batch_size, dataloader, generator, discriminator):
+    generator.eval()
+    discriminator.eval()
     with torch.no_grad():
         total_samples = 0
         total_loss = 0
@@ -43,9 +45,11 @@ def evaluate_loss(ts, batch_size, dataloader, generator, discriminator):
             generated_samples = generator(ts, batch_size)
             generated_score = discriminator(generated_samples)
             real_score = discriminator(real_samples)
-            loss = generated_score - real_score
+            loss = generated_score - real_score # TODO maybe update with wasserstein?
             total_samples += batch_size
             total_loss += loss.item() * batch_size
+    generator.train()
+    discriminator.train()
     return total_loss / total_samples
 
 

@@ -129,16 +129,18 @@ class Data():
         real_data, = next(self.infinite_train_dataloader)
         return real_data
 
-    def get_fake_samples(self, generator):
-        fake_samples = remove_ts(generator(self.ts, self.cfg.batch_size))
-        # std = self.std.view(1, 1, -1)
-        # mean = self.mean.view(1, 1, -1)
-        std = self.std[0]
-        mean = self.mean[0]
-        return append_ts(self.ts, fake_samples * std + mean)
+    # def get_fake_samples(self, generator):
+    #     fake_samples = remove_ts(generator(self.ts, self.cfg.batch_size))
+        # real_data = torchcde.LinearInterpolation(real_data).evaluate(ts)
+    #     # std = self.std.view(1, 1, -1)
+    #     # mean = self.mean.view(1, 1, -1)
+    #     std = self.std[0]
+    #     mean = self.mean[0]
+    #     return append_ts(self.ts, fake_samples * std + mean)
 
     # def get_real_samples(self):
     #     real_data = remove_ts(self.next())
+    # real_data = torchcde.LinearInterpolation(real_data).evaluate(ts)
     #     # std = self.std.view(1, 1, -1)
     #     # mean = self.mean.view(1, 1, -1)
     #     std = self.std[0]

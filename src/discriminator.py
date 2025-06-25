@@ -29,7 +29,7 @@ class DiscriminatorFunc(torch.nn.Module):
 
 
 class Discriminator(torch.nn.Module):
-    def __init__(self, data_size, hidden_size, mlp_size, num_layers):
+    def __init__(self, data_size, hidden_size, mlp_size, num_layers, d_dt):
         super().__init__()
 
         self._initial = MLP(1 + data_size, hidden_size, mlp_size, num_layers, tanh=False)
@@ -37,6 +37,7 @@ class Discriminator(torch.nn.Module):
         self._readout = torch.nn.Linear(hidden_size, 1)
 
         self.h0 = None
+        self.dt = d_dt
 
     def forward(self, ys_coeffs):
         # ys_coeffs has shape (batch_size, t_size, 1 + data_size)
@@ -47,7 +48,7 @@ class Discriminator(torch.nn.Module):
         Y = torchcde.LinearInterpolation(ys_coeffs)
         Y0 = Y.evaluate(Y.interval[0])
         self.h0 = self._initial(Y0)
-        hs = torchcde.cdeint(Y, self._func, self.h0, Y.interval, method='reversible_heun', backend='torchsde', dt=1.0,
+        hs = torchcde.cdeint(Y, self._func, self.h0, Y.interval, method='reversible_heun', backend='torchsde', dt=self.dt,
                              adjoint_method='adjoint_reversible_heun',
                              adjoint_params=(ys_coeffs,) + tuple(self._func.parameters()))
         score = self._readout(hs[:, -1])

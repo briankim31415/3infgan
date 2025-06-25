@@ -71,8 +71,8 @@ def plot_wandb_samples(cfg, ts, generator, data_loader, step):
     # for i in range(num_features):
 
     # Get data for each feature and denormalize
-    real_data = real_data * data_loader.std[0] + data_loader.mean[0]
-    generated_data = generated_data * data_loader.std[0] + data_loader.mean[0]
+    real_data = real_data * data_loader.std[0].to(cfg.device) + data_loader.mean[0].to(cfg.device)
+    generated_data = generated_data * data_loader.std[0].to(cfg.device) + data_loader.mean[0].to(cfg.device)
 
     for j, real_single in enumerate(real_data):
         kwargs = {'label': 'Real'} if j == 0 else {}

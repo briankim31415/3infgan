@@ -1,0 +1,9 @@
+python_version >= 3.11
+matplotlib==3.10.3
+pandas==2.3.0
+PyYAML==6.0.2
+torch==2.7.1
+torchcde==0.2.5
+torchsde==0.2.6
+tqdm==4.67.1
+wandb==0.20.1

@@ -2,7 +2,7 @@ import torch
 import torchcde
 import torchsde
 
-from .utils import remove_ts, append_ts, get_data_csv
+from .utils import get_data_csv, add_time_channel, remove_time_channel
 
 '''
 Load data
@@ -47,79 +47,55 @@ class Data():
             sde_gen = OrnsteinUhlenbeckSDE(mu=0.02, theta=0.1, sigma=0.4, t_size=self.cfg.t_size).to(self.cfg.device)
             y0 = torch.rand(self.cfg.dataset_size, device=self.cfg.device).unsqueeze(-1) * 2 - 1
             ts = torch.linspace(0, self.cfg.t_size - 1, self.cfg.t_size, device=self.cfg.device)
-            ys = torchsde.sdeint(sde_gen, y0, ts, dt=1e-1)
+            ys = torchsde.sdeint(sde_gen, y0, ts, dt=1e-1) # 64, 8192, 1
         else:
             df = get_data_csv(self.cfg.data_source)
-            df = df[self.cfg.data_col]
-            
-            # Flatten full data and reshape into sequences of t_size
+            if self.cfg.data_col is not None:
+                df = df[self.cfg.data_col]
+
             raw_data = df.to_numpy()
+
+            # Ensure raw_data is always 2D: [T, num_channels]
+            if raw_data.ndim == 1:
+                raw_data = raw_data[:, None]
+
             t_size = self.cfg.t_size
-            num_samples = raw_data.shape[0] // t_size
-            data_tensor = torch.tensor(
-                raw_data[:num_samples * t_size], dtype=torch.float32, device=self.cfg.device
-            ).reshape(num_samples, t_size, -1)
+            num_channels = raw_data.shape[1]
+            dataset_size = raw_data.shape[0] // t_size
+            raw_data = raw_data[:dataset_size * t_size]
+            raw_data = raw_data.reshape(dataset_size, t_size, num_channels)
+            data_tensor = torch.tensor(raw_data, dtype=torch.float32, device=self.cfg.device)
 
-            # Drop or fill NaNs
+            # Drop NaNs
             mask = ~torch.isnan(data_tensor)
-            data_tensor[~mask] = 0.0  # or data_tensor = data_tensor[mask] if you want to fully remove them
+            data_tensor[~mask] = 0.0
 
-            # Normalize with respect to t=0
-            init_data = data_tensor[0]
-            mean = init_data.mean()
-            std = init_data.std()
-            data_tensor = (data_tensor - mean) / std
+            ys = data_tensor.transpose(0, 1)  # shape: [t_size, dataset_size, channels]
 
-            # Save std and mean to denormalize later
-            self.std.append(std)
-            self.mean.append(mean)
+        # Normalize with respect to t=0 for each channel
+        y0 = ys[0]  # shape: [dataset_size, channels]
+        mask = ~torch.isnan(y0)
+        y0[~mask] = 0.0
 
-            # Add time channel
-            ts = torch.arange(t_size, dtype=torch.float32, device=self.cfg.device)  # ensure ts matches data_tensor time dim
-            time_channel = ts.unsqueeze(0).unsqueeze(-1).expand(data_tensor.shape[0], t_size, 1)
-            full_data = torch.cat([time_channel, data_tensor], dim=2)
+        # Calculate mean and std
+        mean = (y0.sum(dim=0) / mask.sum(dim=0)).detach()
+        var = ((y0 - mean)**2 * mask).sum(dim=0) / mask.sum(dim=0)
+        std = torch.sqrt(var + 1e-6)  # small epsilon to avoid divide by zero
 
-            # Package
-            data_size = full_data.size(-1) - 1
-            ys_coeffs = torchcde.linear_interpolation_coeffs(full_data)
-            dataset = torch.utils.data.TensorDataset(ys_coeffs)
-            dataloader = torch.utils.data.DataLoader(dataset, batch_size=self.cfg.batch_size, shuffle=True)
+        # Normalize data
+        ys = (ys - mean.view(1, 1, -1)) / std.view(1, 1, -1)
 
-            return data_size, dataloader
+        # Save per-channel std and mean to denormalize later
+        self.std = std.tolist()
+        self.mean = mean.tolist()
 
-        ###################
-        # To demonstrate how to handle irregular data, then here we additionally drop some of the data (by setting it to
-        # NaN.)
-        ###################
-        # ys_num = ys.numel()
-        # to_drop = torch.randperm(ys_num)[:int(0.3 * ys_num)]
-        # ys.view(-1)[to_drop] = float('nan')
-
-        ###################
-        # Typically important to normalise data. Note that the data is normalised with respect to the statistics of the
-        # initial data, _not_ the whole time series. This seems to help the learning process, presumably because if the
-        # initial condition is wrong then it's pretty hard to learn the rest of the SDE correctly.
-        ###################
-        y0_flat = ys[0].view(-1)
-        y0_not_nan = y0_flat.masked_select(~torch.isnan(y0_flat))
-        mean = y0_not_nan.mean()
-        std = y0_not_nan.std()
-        ys = (ys - mean) / std
-        self.mean.append(mean.item())
-        self.std.append(std.item())
-
-        ###################
-        # As discussed, time must be included as a channel for the discriminator.
-        ###################
-        ys = torch.cat([self.ts.unsqueeze(0).unsqueeze(-1).expand(self.cfg.dataset_size, self.cfg.t_size, 1),
+        # Add time channel
+        ys = torch.cat([self.ts.unsqueeze(0).unsqueeze(-1).expand(ys.size(1), ys.size(0), 1),
                         ys.transpose(0, 1)], dim=2)
-        # shape (dataset_size=1000, t_size=100, 1 + data_size=3)
 
-        ###################
-        # Package up.
-        ###################
-        data_size = ys.size(-1) - 1  # How many channels the data has (not including time, hence the minus one).
-        ys_coeffs = torchcde.linear_interpolation_coeffs(ys)  # as per neural CDEs.
+        # Package
+        data_size = ys.size(-1) - 1
+        ys_coeffs = torchcde.linear_interpolation_coeffs(ys)
         dataset = torch.utils.data.TensorDataset(ys_coeffs)
         dataloader = torch.utils.data.DataLoader(dataset, batch_size=self.cfg.batch_size, shuffle=True)
 
@@ -129,22 +105,42 @@ class Data():
         real_data, = next(self.infinite_train_dataloader)
         return real_data
 
-    # def get_fake_samples(self, generator):
-    #     fake_samples = remove_ts(generator(self.ts, self.cfg.batch_size))
-        # real_data = torchcde.LinearInterpolation(real_data).evaluate(ts)
-    #     # std = self.std.view(1, 1, -1)
-    #     # mean = self.mean.view(1, 1, -1)
-    #     std = self.std[0]
-    #     mean = self.mean[0]
-    #     return append_ts(self.ts, fake_samples * std + mean)
+    def get_fake_samples(self, generator):
+        """Return denormalized fake samples with time channel."""
+        # Generate fake data
+        generator.eval()
+        with torch.no_grad():
+            fake_data = generator(self.ts, self.cfg.batch_size)
+        generator.train()
 
-    # def get_real_samples(self):
-    #     real_data = remove_ts(self.next())
-    # real_data = torchcde.LinearInterpolation(real_data).evaluate(ts)
-    #     # std = self.std.view(1, 1, -1)
-    #     # mean = self.mean.view(1, 1, -1)
-    #     std = self.std[0]
-    #     mean = self.mean[0]
-    #     return append_ts(self.ts, real_data * std + mean)
+        fake_data = remove_time_channel(fake_data)
+        fake_data = torchcde.LinearInterpolation(fake_data).evaluate(self.ts)
+
+        # Convert std and mean to tensors
+        std = torch.tensor(self.std, dtype=fake_data.dtype, device=fake_data.device).view(1, 1, -1)
+        mean = torch.tensor(self.mean, dtype=fake_data.dtype, device=fake_data.device).view(1, 1, -1)
+
+        # Apply per-channel denormalization
+        fake_samples = fake_data * std + mean
+
+        # Return samples with time channel
+        return add_time_channel(self.ts, fake_samples)
+
+    def get_real_samples(self):
+        """Return denormalized real samples with time channel."""
+        # Get real data
+        next = self.next()
+        real_data = remove_time_channel(next)
+        real_data = torchcde.LinearInterpolation(real_data).evaluate(self.ts)
+
+        # Convert std and mean to tensors
+        std = torch.tensor(self.std, dtype=real_data.dtype, device=real_data.device).view(1, 1, -1)
+        mean = torch.tensor(self.mean, dtype=real_data.dtype, device=real_data.device).view(1, 1, -1)
+
+        # Apply per-channel denormalization
+        real_samples = real_data * std + mean
+
+        # Return samples with time channel
+        return add_time_channel(self.ts, real_samples)
 
     

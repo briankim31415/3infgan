@@ -10,12 +10,12 @@ from .utils import MLP
 # We begin by defining the generator SDE.
 ###################
 class GeneratorFunc(torch.nn.Module):
-    def __init__(self, noise_size, hidden_size, mlp_size, num_layers, sde_type='stratonovich', noise_type='general'):
+    sde_type = 'stratonovich'
+    noise_type = 'general'
+    def __init__(self, noise_size, hidden_size, mlp_size, num_layers):
         super().__init__()
         self._noise_size = noise_size
         self._hidden_size = hidden_size
-        self.sde_type = sde_type
-        self.noise_type = noise_type
 
         ###################
         # Drift and diffusion are MLPs. They happen to be the same size.

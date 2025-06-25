@@ -6,12 +6,6 @@ from datetime import datetime
 from .train import train
 from .utils import load_config_file, load_csv_cfgs, overwrite_cfg, get_device
 
-'''
-Train loop
-Init wandb(utils)/close
-cfg file selector
-"Store final models" >> later
-'''
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run Infinite GAN training.")

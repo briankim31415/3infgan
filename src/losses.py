@@ -35,13 +35,13 @@ def apply_weight_clipping(model, clip_value=0.01):
     for p in model.parameters():
         p.data.clamp_(-clip_value, clip_value)
 
-def evaluate_loss(ts, batch_size, dataloader, generator, discriminator):
+def evaluate_loss(ts, batch_size, data_loader, generator, discriminator):
     generator.eval()
     discriminator.eval()
     with torch.no_grad():
         total_samples = 0
         total_loss = 0
-        for real_samples, in dataloader:
+        for real_samples, in data_loader.dataloader:
             generated_samples = generator(ts, batch_size)
             generated_score = discriminator(generated_samples)
             real_score = discriminator(real_samples)

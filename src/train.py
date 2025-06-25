@@ -10,13 +10,6 @@ from .losses import discriminator_loss, generator_loss, evaluate_loss
 from .logging import start_wandb, close_wandb, plot_wandb_samples
 from .utils import set_seed
 
-'''
-Init g/d
-Loop sample/train
-Wandb logging loss/scores
-Call plot wandb samples
-Call losses
-'''
 
 
 def train(cfg):
@@ -87,7 +80,7 @@ def train(cfg):
                 swa_scheduler_d.step()
 
             if step % cfg.log_interval == 0:
-                total_unavg_loss = evaluate_loss(ts, cfg.batch_size, data_loader.dataloader, generator, discriminator)
+                total_unavg_loss = evaluate_loss(ts, cfg.batch_size, data_loader, generator, discriminator)
 
                 metrics = {
                     'total_unavg_loss': total_unavg_loss,
@@ -97,7 +90,7 @@ def train(cfg):
                 }
 
                 if step > cfg.swa_step_start:
-                    total_averaged_loss = evaluate_loss(ts, cfg.batch_size, data_loader.dataloader, averaged_generator.module, averaged_discriminator.module)
+                    total_averaged_loss = evaluate_loss(ts, cfg.batch_size, data_loader, averaged_generator.module, averaged_discriminator.module)
                     metrics['total_avg_loss'] = total_averaged_loss
 
 
@@ -108,13 +101,7 @@ def train(cfg):
 
                     ################
                     # PROBING
-                    ################
-                    # MODULE A: V ~ N(0,I_v)
-                    # wandb.log({
-                    #     'probe/moduleA_v_mean': generator.noise.mean().item(),
-                    #     'probe/moduleA_v_std': generator.noise.std().item()
-                    # })
-                        
+                    ################                        
                     # MODULE B: X_0
                     wandb.log({
                         'probe/moduleB_x0_mean': generator.x0.mean().item(),
@@ -143,10 +130,10 @@ def train(cfg):
                     ################
                 
             if step % cfg.samples_interval == 0 and cfg.use_wandb:
-                plot_wandb_samples(cfg, ts, generator, data_loader, step)
+                plot_wandb_samples(cfg, ts, step, generator, data_loader)
                 
                 if step > cfg.swa_step_start:
-                    plot_wandb_samples(cfg, ts, averaged_generator, data_loader, step, avg=True)
+                    plot_wandb_samples(cfg, ts, step, averaged_generator, data_loader, avg=True)
 
         else:
             # Update discriminator 5 times per generator update
@@ -268,10 +255,10 @@ def train(cfg):
                     ################
                 
             if step % cfg.samples_interval == 0 and cfg.use_wandb:
-                plot_wandb_samples(cfg, ts, generator, data_loader, step)
+                plot_wandb_samples(cfg, ts, step, generator, data_loader)
                 
                 if step > cfg.swa_step_start:
-                    plot_wandb_samples(cfg, ts, averaged_generator, data_loader, step, avg=True)
+                    plot_wandb_samples(cfg, ts, step, averaged_generator, data_loader, avg=True)
 
     close_wandb(cfg)
 

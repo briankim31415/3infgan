@@ -48,24 +48,6 @@ def get_device():
         print("Warning: CUDA not available; falling back to CPU.")
         return 'cpu'
 
-def remove_ts(data):
-    """
-    Removes the first feature (assumed to be timestep) from the last dimension of the tensor.
-    Expects data of shape [batch_size, time_steps, features].
-    """
-
-    # TODO Check if this is right
-    return data[:, :, 1:]
-
-def append_ts(ts, data):
-    """
-    Appends the timestep tensor as the first feature along the last dimension.
-    Expects timestep of shape [batch_size, time_steps, 1] and data of shape [batch_size, time_steps, features-1].
-    """
-
-    # TODO Check if this is right (adds to every trajectory?)
-    return torch.cat((ts, data), dim=-1)
-
 def add_time_channel(ts: torch.Tensor, trajectories: torch.Tensor) -> torch.Tensor:
     """Add time as first channel to trajectories.
     

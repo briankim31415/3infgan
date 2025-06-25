@@ -1,0 +1,7 @@
+data_source: weather
+data_col: T (degC)
+
+# W&B
+wandb_proj: 3infgan
+wandb_name: test
+config_name: cfg

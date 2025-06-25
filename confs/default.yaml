@@ -27,6 +27,7 @@ dataset_size: 8192
 seed: 0
 d_updates_per_g: 5
 t_size: 32
+data_col: None
 
 # W&B
 log_interval: 100

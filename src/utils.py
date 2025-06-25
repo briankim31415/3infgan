@@ -6,6 +6,7 @@ import csv
 import random
 import torchcde
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 from types import SimpleNamespace
 
@@ -201,3 +202,8 @@ def set_seed(seed=0):
     if torch.cuda.is_available():
         torch.cuda.manual_seed(seed)
         torch.cuda.manual_seed_all(seed)
+
+def get_data_csv(csv_name):
+    ''' Get source data from .csv '''
+    file_path = f'./data/{csv_name}.csv'
+    return pd.read_csv(file_path)

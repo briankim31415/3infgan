@@ -2,7 +2,7 @@ import torch
 import torchcde
 import torchsde
 
-from .utils import remove_ts, append_ts
+from .utils import remove_ts, append_ts, get_data_csv
 
 '''
 Load data
@@ -48,14 +48,52 @@ class Data():
             y0 = torch.rand(self.cfg.dataset_size, device=self.cfg.device).unsqueeze(-1) * 2 - 1
             ts = torch.linspace(0, self.cfg.t_size - 1, self.cfg.t_size, device=self.cfg.device)
             ys = torchsde.sdeint(sde_gen, y0, ts, dt=1e-1)
+        else:
+            df = get_data_csv(self.cfg.data_source)
+            df = df[self.cfg.data_col]
+            
+            # Flatten full data and reshape into sequences of t_size
+            raw_data = df.to_numpy()
+            t_size = self.cfg.t_size
+            num_samples = raw_data.shape[0] // t_size
+            data_tensor = torch.tensor(
+                raw_data[:num_samples * t_size], dtype=torch.float32, device=self.cfg.device
+            ).reshape(num_samples, t_size, -1)
+
+            # Drop or fill NaNs
+            mask = ~torch.isnan(data_tensor)
+            data_tensor[~mask] = 0.0  # or data_tensor = data_tensor[mask] if you want to fully remove them
+
+            # Normalize with respect to t=0
+            init_data = data_tensor[0]
+            mean = init_data.mean()
+            std = init_data.std()
+            data_tensor = (data_tensor - mean) / std
+
+            # Save std and mean to denormalize later
+            self.std.append(std)
+            self.mean.append(mean)
+
+            # Add time channel
+            ts = torch.arange(t_size, dtype=torch.float32, device=self.cfg.device)  # ensure ts matches data_tensor time dim
+            time_channel = ts.unsqueeze(0).unsqueeze(-1).expand(data_tensor.shape[0], t_size, 1)
+            full_data = torch.cat([time_channel, data_tensor], dim=2)
+
+            # Package
+            data_size = full_data.size(-1) - 1
+            ys_coeffs = torchcde.linear_interpolation_coeffs(full_data)
+            dataset = torch.utils.data.TensorDataset(ys_coeffs)
+            dataloader = torch.utils.data.DataLoader(dataset, batch_size=self.cfg.batch_size, shuffle=True)
+
+            return data_size, dataloader
 
         ###################
         # To demonstrate how to handle irregular data, then here we additionally drop some of the data (by setting it to
         # NaN.)
         ###################
-        ys_num = ys.numel()
-        to_drop = torch.randperm(ys_num)[:int(0.3 * ys_num)]
-        ys.view(-1)[to_drop] = float('nan')
+        # ys_num = ys.numel()
+        # to_drop = torch.randperm(ys_num)[:int(0.3 * ys_num)]
+        # ys.view(-1)[to_drop] = float('nan')
 
         ###################
         # Typically important to normalise data. Note that the data is normalised with respect to the statistics of the

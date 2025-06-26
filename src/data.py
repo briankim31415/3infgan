@@ -32,17 +32,13 @@ class Data():
         self.cfg = cfg
         self.mean = []
         self.std = []
+        self.cols = []
         self.ts = torch.linspace(0, cfg.t_size - 1, cfg.t_size, device=cfg.device)
 
         self.data_size, self.dataloader = self.create_dataloader()
         self.infinite_train_dataloader = (elem for it in iter(lambda: self.dataloader, None) for elem in it)
 
     def create_dataloader(self):
-        # Return ts, num_features
-
-        '''
-        Get the data (OU, dataset)
-        '''
         if self.cfg.data_source == "ou_proc":
             sde_gen = OrnsteinUhlenbeckSDE(mu=0.02, theta=0.1, sigma=0.4, t_size=self.cfg.t_size).to(self.cfg.device)
             y0 = torch.rand(self.cfg.dataset_size, device=self.cfg.device).unsqueeze(-1) * 2 - 1
@@ -50,8 +46,10 @@ class Data():
             ys = torchsde.sdeint(sde_gen, y0, ts, dt=1e-1) # 64, 8192, 1
         else:
             df = get_data_csv(self.cfg.data_source)
-            if self.cfg.data_col is not None:
+            if self.cfg.data_col != "None":
                 df = df[self.cfg.data_col]
+            else:
+                self.cols = df.columns.to_list()
 
             raw_data = df.to_numpy()
 

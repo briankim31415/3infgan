@@ -41,5 +41,5 @@ use_wandb: false
 wandb_online: false
 wandb_proj: 3infgan
 wandb_name: test
-config_name: cfg
+config_name: default
 timestamp: None

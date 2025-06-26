@@ -13,7 +13,6 @@ from types import SimpleNamespace
 ###################
 # TorchSDE standard helper objects.
 ###################
-import torch
 
 class LipSwish(torch.nn.Module):
     def forward(self, x):
@@ -40,7 +39,22 @@ class MLP(torch.nn.Module):
     def forward(self, x):
         return self._model(x)
 
+
+###################
+# Infinite GAN helper functions.
+###################
+
+def set_seed(seed=0):
+    """Set random seeds for reproducibility."""
+    torch.manual_seed(seed)
+    np.random.seed(seed)
+    random.seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
+
 def get_device():
+    
     if torch.cuda.is_available():
         print("Using CUDA.")
         return 'cuda'
@@ -77,6 +91,11 @@ def remove_time_channel(trajectories: torch.Tensor) -> torch.Tensor:
         Trajectories of shape (batch, time, channels) with time channel removed
     """
     return trajectories[:, :, 1:]
+
+
+###################
+# Config loading helper functions.
+###################
 
 def load_config_file(cfg_name="default"):
     """
@@ -132,15 +151,6 @@ def load_csv_cfgs(csv_name):
             cfg = SimpleNamespace(**converted_row)
             cfg_list.append(cfg)
     return cfg_list
-
-def set_seed(seed=0):
-    """Set random seeds for reproducibility."""
-    torch.manual_seed(seed)
-    np.random.seed(seed)
-    random.seed(seed)
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed(seed)
-        torch.cuda.manual_seed_all(seed)
 
 def get_data_csv(csv_name):
     """Get source data from .csv"""

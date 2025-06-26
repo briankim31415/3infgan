@@ -1,13 +1,9 @@
-import wandb
 import torch
-import os
 import yaml
 import csv
 import random
-import torchcde
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 from types import SimpleNamespace
 
 ###################
@@ -15,10 +11,12 @@ from types import SimpleNamespace
 ###################
 
 class LipSwish(torch.nn.Module):
+    """Approximation of LipSwish activation function."""
     def forward(self, x):
         return 0.909 * torch.nn.functional.silu(x)
 
 class MLP(torch.nn.Module):
+    """MLP neural net class object for generator and discriminator."""
     def __init__(self, in_size, out_size, mlp_size, num_layers, tanh):
         super().__init__()
 
@@ -54,7 +52,7 @@ def set_seed(seed=0):
         torch.cuda.manual_seed_all(seed)
 
 def get_device():
-    
+    """Determines the appropriate device for PyTorch computations."""
     if torch.cuda.is_available():
         print("Using CUDA.")
         return 'cuda'
@@ -63,7 +61,8 @@ def get_device():
         return 'cpu'
 
 def add_time_channel(ts: torch.Tensor, trajectories: torch.Tensor) -> torch.Tensor:
-    """Add time as first channel to trajectories.
+    """
+    Add time as first channel to trajectories.
     
     Args:
         ts: Time points of shape (num_time_steps,)
@@ -80,9 +79,9 @@ def add_time_channel(ts: torch.Tensor, trajectories: torch.Tensor) -> torch.Tens
     # Concatenate time as first channel
     return torch.cat([time_channel, trajectories], dim=-1)
 
-# Remove time from first channel of trajectories
 def remove_time_channel(trajectories: torch.Tensor) -> torch.Tensor:
-    """Remove time from first channel of trajectories.
+    """
+    Remove time from first channel of trajectories.
 
     Args:
         trajectories: Time-augmented trajectories of shape (batch, time, channels+1)
@@ -98,30 +97,33 @@ def remove_time_channel(trajectories: torch.Tensor) -> torch.Tensor:
 ###################
 
 def load_config_file(cfg_name="default"):
-    """
-    Loads the configuration file from the /confs directory,
-    which is at the same level as the parent of this file's directory (/src),
-    and returns it as a SimpleNamespace.
-    """
-    current_file_dir = os.path.dirname(os.path.abspath(__file__))  # /src
-    project_root = os.path.dirname(current_file_dir)  # project root
-    config_path = os.path.join(project_root, "confs", f"{cfg_name}.yaml")
+    """Loads the configuration file from the /confs directory."""
+    # Get path of config file
+    config_path = f'./confs/{cfg_name}.yaml'
 
+    # Open the config file
     with open(config_path, "r") as file:
         config_dict = yaml.safe_load(file)
 
+    # Return config as a SimpleNamespace
     return SimpleNamespace(**config_dict)
 
 def overwrite_cfg(config, ow_cfg):
-    """
-    Overwrites values in the default configuration with those in the provided config.
-    Both arguments are expected to be SimpleNamespace instances.
-    """
+    """Overwrites values in the first config with those in the overwrite config."""
+    # Create a new output SimpleNamespace so values don't carry over
     output_cfg = SimpleNamespace(**vars(config))
+
+    # Iterate through each overwrite parameter
     for key, value in vars(ow_cfg).items():
+
+        # Check if parameter is valid
         if not hasattr(output_cfg, key):
             raise KeyError(f"Key '{key}' not found in configuration.")
+        
+        # Overwrite parameter
         setattr(output_cfg, key, value)
+    
+    # Return new overwritten config
     return output_cfg
 
 def load_csv_cfgs(csv_name):
@@ -135,24 +137,34 @@ def load_csv_cfgs(csv_name):
     Returns:
         List[SimpleNamespace]: List of config objects.
     """
+    # Get path of csv
+    csv_path = f'./confs{csv_name}.csv'
+
+    # Iterate through the csv file
     cfg_list = []
-    current_file_dir = os.path.dirname(os.path.abspath(__file__))  # /src
-    project_root = os.path.dirname(current_file_dir)  # project root
-    csv_path = os.path.join(project_root, "confs", f"{csv_name}.csv")
     with open(csv_path, newline='') as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
+
+            # Convert numerical values from strings to numbers (int/float)
             converted_row = {
                 k: int(v) if v.isdigit()
                 else float(v) if v.replace('.', '', 1).isdigit() and v.count('.') < 2
                 else v
                 for k, v in row.items()
             }
+
+            # Create new SimpleNamespace for the given config
             cfg = SimpleNamespace(**converted_row)
             cfg_list.append(cfg)
+
+    # Return list of all configs in csv
     return cfg_list
 
 def get_data_csv(csv_name):
-    """Get source data from .csv"""
+    """Get data from data_source.csv"""
+    # Get path of csv
     file_path = f'./data/{csv_name}.csv'
+
+    # Read and return data from csv
     return pd.read_csv(file_path)

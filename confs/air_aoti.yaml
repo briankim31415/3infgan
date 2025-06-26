@@ -1,0 +1,7 @@
+data_source: air_aoti
+t_size: 128 # Sample size
+dataset_size: 5000
+
+# W&B
+wandb_proj: 3infgan
+wandb_name: air_aoti

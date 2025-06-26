@@ -1,6 +1,7 @@
 import torch
 import torchcde
 import torchsde
+import numpy as np
 
 from .utils import get_data_csv, add_time_channel, remove_time_channel
 
@@ -40,35 +41,49 @@ class Data():
 
     def create_dataloader(self):
         if self.cfg.data_source == "ou_proc":
+            # Generate Ornstein-Uhlenbeck process
             sde_gen = OrnsteinUhlenbeckSDE(mu=0.02, theta=0.1, sigma=0.4, t_size=self.cfg.t_size).to(self.cfg.device)
             y0 = torch.rand(self.cfg.dataset_size, device=self.cfg.device).unsqueeze(-1) * 2 - 1
             ts = torch.linspace(0, self.cfg.t_size - 1, self.cfg.t_size, device=self.cfg.device)
             ys = torchsde.sdeint(sde_gen, y0, ts, dt=1e-1) # 64, 8192, 1
         else:
+            # Read from csv dataset
             df = get_data_csv(self.cfg.data_source)
             if self.cfg.data_col != "None":
+                # If config selects only 1 column for data
                 df = df[self.cfg.data_col]
             else:
+                # Read all columns of data
                 self.cols = df.columns.to_list()
-
             raw_data = df.to_numpy()
 
             # Ensure raw_data is always 2D: [T, num_channels]
             if raw_data.ndim == 1:
                 raw_data = raw_data[:, None]
 
+            # Sample windows, avoiding overlap when possible
             t_size = self.cfg.t_size
-            num_channels = raw_data.shape[1]
-            dataset_size = raw_data.shape[0] // t_size
-            raw_data = raw_data[:dataset_size * t_size]
-            raw_data = raw_data.reshape(dataset_size, t_size, num_channels)
-            data_tensor = torch.tensor(raw_data, dtype=torch.float32, device=self.cfg.device)
+            if self.cfg.dataset_size * t_size <= raw_data.shape[0]:
+                # Sample without overlap by selecting non-overlapping start indices
+                available_starts = torch.arange(0, raw_data.shape[0] - t_size + 1, t_size)
+                selected_starts = available_starts[torch.randperm(len(available_starts))[:self.cfg.dataset_size]]
+            else:
+                # Use all possible non-overlapping starts first
+                non_overlap_starts = torch.arange(0, raw_data.shape[0] - t_size + 1, t_size)
+                remaining = self.cfg.dataset_size - len(non_overlap_starts)
+                overlap_starts = torch.randint(0, raw_data.shape[0] - t_size + 1, (remaining,))
+                selected_starts = torch.cat([non_overlap_starts, overlap_starts], dim=0)
+
+            # Generate data_tensor from the sampled data
+            sampled_data = np.array([raw_data[i:i + t_size] for i in selected_starts])
+            data_tensor = torch.tensor(sampled_data, dtype=torch.float32, device=self.cfg.device)
 
             # Drop NaNs
             mask = ~torch.isnan(data_tensor)
             data_tensor[~mask] = 0.0
 
-            ys = data_tensor.transpose(0, 1)  # shape: [t_size, dataset_size, channels]
+            # Transpose tensor to desired shape: [t_size, dataset_size, channels] (no time channel)
+            ys = data_tensor.transpose(0, 1)
 
         # Normalize with respect to t=0 for each channel
         y0 = ys[0]  # shape: [dataset_size, channels]
@@ -97,9 +112,11 @@ class Data():
         dataset = torch.utils.data.TensorDataset(ys_coeffs)
         dataloader = torch.utils.data.DataLoader(dataset, batch_size=self.cfg.batch_size, shuffle=True)
 
+        # Return channel count and dataloader
         return data_size, dataloader
 
     def next(self):
+        """Return next batch of samples."""
         real_data, = next(self.infinite_train_dataloader)
         return real_data
 

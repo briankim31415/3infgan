@@ -1,7 +1,7 @@
 data_source: google
-t_size: 24 # Sample size
+t_size: 128 # Sample size
+dataset_size: 5000
 
 # W&B
 wandb_proj: 3infgan
-wandb_name: run
-config_name: google
+wandb_name: google

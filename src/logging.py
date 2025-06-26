@@ -5,12 +5,17 @@ from. data import Data
 
 def start_wandb(cfg):
     if cfg.use_wandb:
+        if cfg.config_num == 0:
+            name = f'{cfg.wandb_name}_[{cfg.timestamp}]'
+        else:
+            name = f'{cfg.wandb_name}_cfg{cfg.config_num}_[{cfg.timestamp}]'
+
         wandb.login()
         wandb.init(
                 project=cfg.wandb_proj,
                 config=vars(cfg),
-                name=f'{cfg.data_source}_[{cfg.timestamp}]',
-                tags=[cfg.data_source, cfg.timestamp],
+                name=name,
+                tags=[cfg.wandb_name, cfg.data_source, cfg.timestamp],
                 mode="online" if cfg.wandb_online else "offline"
             )
 

@@ -3,5 +3,4 @@ t_size: 2 # Sample size
 
 # W&B
 wandb_proj: 3infgan
-wandb_name: test
-config_name: multi-channel_test
+wandb_name: multi-channel_test

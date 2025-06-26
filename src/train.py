@@ -6,7 +6,7 @@ import wandb
 from .data import Data
 from .generator import Generator
 from .discriminator import Discriminator
-from .losses import discriminator_loss, generator_loss, evaluate_loss
+from .losses import generator_loss, evaluate_loss, wasserstein_loss
 from .logging import start_wandb, close_wandb, plot_wandb_samples
 from .utils import set_seed
 
@@ -52,7 +52,10 @@ def train(cfg):
             generated_samples = generator(ts, cfg.batch_size)
             generated_score = discriminator(generated_samples)
             real_score = discriminator(real_samples)
-            loss = generated_score - real_score
+            # loss = generated_score - real_score
+            loss = wasserstein_loss(real_score, generated_score)
+            generated_score = generated_score.mean()
+            real_score = real_score.mean()
             loss.backward()
 
             for param in generator.parameters():
@@ -62,10 +65,7 @@ def train(cfg):
             gen_optm.zero_grad()
             dis_optm.zero_grad()
 
-            ###################
-            # We constrain the Lipschitz constant of the discriminator using carefully-chosen clipping (and the use of
-            # LipSwish activation functions).
-            ###################
+            # Constrain the Lipschitz constant of the discriminator
             with torch.no_grad():
                 for module in discriminator.modules():
                     if isinstance(module, torch.nn.Linear):
@@ -79,6 +79,7 @@ def train(cfg):
                 swa_scheduler_g.step()
                 swa_scheduler_d.step()
 
+            # Logging
             if step % cfg.log_interval == 0:
                 total_unavg_loss = evaluate_loss(ts, cfg.batch_size, data_loader, generator, discriminator)
 
@@ -144,8 +145,8 @@ def train(cfg):
                     fake_data = generator(ts, cfg.batch_size)
 
                 # Get real and fake scores
-                real_score = discriminator(real_data)
-                fake_score = discriminator(fake_data)
+                real_score = discriminator(real_data).mean()
+                fake_score = discriminator(fake_data).mean()
 
                 # Get discriminator loss (fake_score - real_score)
                 dis_loss = discriminator_loss(real_score, fake_score)
@@ -154,12 +155,7 @@ def train(cfg):
                 dis_optm.step()
                 dis_optm.zero_grad()
 
-                ###################
-                # TODO: MOVE TO ANOTHER FILE?
-                ###################
-                # We constrain the Lipschitz constant of the discriminator using carefully-chosen clipping (and the use of
-                # LipSwish activation functions).
-                ###################
+                # Constrain the Lipschitz constant of the discriminator
                 with torch.no_grad():
                     for module in discriminator.modules():
                         if isinstance(module, torch.nn.Linear):
@@ -168,7 +164,7 @@ def train(cfg):
 
             # Get fake data and score
             fake_data = generator(ts, cfg.batch_size)
-            fake_score = discriminator(fake_data)
+            fake_score = discriminator(fake_data).mean()
 
             # Get generator loss
             gen_loss = generator_loss(fake_score)

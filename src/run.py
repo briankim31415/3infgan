@@ -1,13 +1,12 @@
-################
-# Main Run Class.
-################
 import argparse
 from datetime import datetime
+
 from .train import train
 from .utils import load_config_file, load_csv_cfgs, overwrite_cfg, get_device
 
 
 def parse_args():
+    """Create a parser and add arguments for command line."""
     parser = argparse.ArgumentParser(description="Run Infinite GAN training.")
     parser.add_argument("--use_wandb", action="store_true", help="Enable wandb logging.")
     parser.add_argument("--online", action="store_true", help="Set wandb mode to online")
@@ -16,6 +15,7 @@ def parse_args():
     return parser.parse_args()
 
 def set_def_args(config, args):
+    """Set default config parameters to argument values."""
     config.use_wandb = args.use_wandb
     config.wandb_online = args.online
     config.device = get_device()
@@ -23,11 +23,14 @@ def set_def_args(config, args):
 
 
 def main():
-    # Get args
+    """Main runner class for Infinite GANs."""
+    # Get argument parser
     args = parse_args()
 
     # Get default config file
     config = load_config_file()
+
+    # Load arguments
     set_def_args(config, args)
 
     # Overwrite any parameters
@@ -39,7 +42,7 @@ def main():
     config_runs = []
     if args.multirun_cfg is not None:
         multi_run_cfgs = load_csv_cfgs(args.multirun_cfg)
-        for cfg in multi_run_cfgs:
+        for i, cfg in enumerate(multi_run_cfgs):
             add_cfg = overwrite_cfg(config, cfg)
             config_runs.append(add_cfg)
     else:

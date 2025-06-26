@@ -52,4 +52,5 @@ class Discriminator(torch.nn.Module):
                              adjoint_method='adjoint_reversible_heun',
                              adjoint_params=(ys_coeffs,) + tuple(self._func.parameters()))
         score = self._readout(hs[:, -1])
-        return score.mean()
+        # return score.mean()
+        return score

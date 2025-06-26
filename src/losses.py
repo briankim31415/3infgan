@@ -1,30 +1,51 @@
 import torch
+import wandb
 
-def discriminator_loss(real_score, generated_score, discriminator=None, real_data=None, fake_data=None):
-        """Compute discriminator loss with optional gradient penalty.
-        
-        Args:
-            real_score: Discriminator scores for real data
-            generated_score: Discriminator scores for fake data
-            discriminator: Discriminator model (required for gradient penalty)
-            real_data: Real trajectories (required for gradient penalty)
-            fake_data: Fake trajectories (required for gradient penalty)
-        
-        Returns:
-            Total discriminator loss
-        """
-        # Wasserstein distance estimate (to maximize)
-        wasserstein_distance = real_score - generated_score
-        
-        # Base loss (to minimize)
-        base_loss = -wasserstein_distance
-        
-        # if self.lipschitz_method == 'gp' and discriminator is not None:
-        #     # Add gradient penalty
-        #     gp = gradient_penalty(discriminator, real_data, fake_data, self.gp_lambda)
-        #     return base_loss + gp
-        
-        return base_loss
+def wasserstein_distance(x, y, p=1):
+    """
+    Approximate Wasserstein-p distance between two 1D tensors using sorting.
+    Retains gradients.
+
+    Args:
+        x (Tensor): shape [batch_size, 1] or [batch_size]
+        y (Tensor): shape [batch_size, 1] or [batch_size]
+        p (int): power (1 for W1, 2 for W2, etc.)
+
+    Returns:
+        Tensor: scalar Wasserstein distance
+    """
+    x = x.view(-1)
+    y = y.view(-1)
+
+    x_sorted, _ = torch.sort(x)
+    y_sorted, _ = torch.sort(y)
+
+    # Element-wise distance, then take p-norm
+    return torch.mean(torch.abs(x_sorted - y_sorted) ** p) ** (1. / p)
+
+def wasserstein_loss(real_scores, fake_scores, discriminator=None, real_data=None, fake_data=None):
+    w_loss = None
+    if real_scores.size() == fake_scores.size():
+        # Calculate Wasserstein distance if arrays are same size
+        direction = torch.sign((fake_scores.mean() - real_scores.mean()).detach())
+        w_loss = direction * wasserstein_distance(real_scores, fake_scores)  # Signed Wasserstein distance
+    
+    # Calculate simple difference of mean if arrays are not same size
+    m_loss = fake_scores.mean() - real_scores.mean()
+
+    # Log both mean and wasserstein loss for analysis
+    wandb.log({
+        'losses/was_dist': w_loss.item() if w_loss is not None else 0,
+        'losses/mean': m_loss.item()
+    })
+    
+    # if self.lipschitz_method == 'gp' and discriminator is not None:
+    #     # Add gradient penalty
+    #     gp = gradient_penalty(discriminator, real_data, fake_data, self.gp_lambda)
+    #     return loss + gp
+
+    loss = w_loss if w_loss is not None else m_loss
+    return loss
 
 def generator_loss(d_fake):
         """Compute generator loss."""
@@ -43,8 +64,8 @@ def evaluate_loss(ts, batch_size, data_loader, generator, discriminator):
         total_loss = 0
         for real_samples, in data_loader.dataloader:
             generated_samples = generator(ts, batch_size)
-            generated_score = discriminator(generated_samples)
-            real_score = discriminator(real_samples)
+            generated_score = discriminator(generated_samples).mean()
+            real_score = discriminator(real_samples).mean()
             loss = generated_score - real_score # TODO maybe update with wasserstein?
             total_samples += batch_size
             total_loss += loss.item() * batch_size
@@ -79,7 +100,7 @@ def evaluate_loss(ts, batch_size, data_loader, generator, discriminator):
 #     interpolated.requires_grad_(True)
     
 #     # Get discriminator output
-#     d_interpolated = discriminator(interpolated)
+#     d_interpolated = discriminator(interpolated).mean()
     
 #     # Create ones tensor for gradient computation
 #     ones = torch.ones_like(d_interpolated, requires_grad=False)

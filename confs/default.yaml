@@ -14,7 +14,7 @@ init_mult1: 3
 init_mult2: 0.5
 weight_decay: 0.01
 swa_step_start: 5000
-dataset_size: 8192
+dataset_size: 10000
 t_size: 64 # Sample size
 g_dt: 1.0
 d_dt: 1.0
@@ -40,6 +40,6 @@ save_interval: 2000
 use_wandb: false
 wandb_online: false
 wandb_proj: 3infgan
-wandb_name: test
-config_name: default
+wandb_name: default
+config_num: 0
 timestamp: None

@@ -208,7 +208,7 @@ def train(cfg):
                 total_unavg_loss = evaluate_loss(ts, cfg.batch_size, data_loader, generator, discriminator)
 
                 metrics = {
-                    'discriminator_loss': dis_loss.item(),
+                    'discriminator_loss': dis_loss,
                     'generator_loss': gen_loss.item(),
                     'total_unavg_loss': total_unavg_loss,
                     'real_score_mean': real_scores.mean().item(),

@@ -16,8 +16,8 @@ weight_decay: 0.01
 swa_step_start: 5000
 dataset_size: 10000
 t_size: 128 # Sample size
-g_dt: 0.1
-d_dt: 0.1
+g_dt: 1.0
+d_dt: 1.0
 
 # Evaluation and plotting hyperparameters
 steps_per_print: 10 # How often to print the loss.

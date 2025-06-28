@@ -205,7 +205,7 @@ def train(cfg):
             
             # Logging
             if step % cfg.log_interval == 0:
-                total_unavg_loss = evaluate_loss(ts, cfg.batch_size, data_loader.dataloader, generator, discriminator)
+                total_unavg_loss = evaluate_loss(ts, cfg.batch_size, data_loader, generator, discriminator)
 
                 metrics = {
                     'discriminator_loss': dis_loss.item(),

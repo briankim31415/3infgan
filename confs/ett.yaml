@@ -1,5 +1,4 @@
 data_source: ett
-t_size: 64 # Sample size
 dataset_size: 5000
 
 # W&B

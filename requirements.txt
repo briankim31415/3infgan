@@ -6,3 +6,4 @@ torchcde==0.2.5
 torchsde==0.2.6
 tqdm==4.67.1
 wandb==0.20.1
+diffrax==0.7.0

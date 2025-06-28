@@ -54,8 +54,6 @@ def train(cfg):
             real_score = discriminator(real_samples)
             # loss = generated_score - real_score
             loss = wasserstein_loss(real_score, generated_score)
-            generated_score = generated_score.mean()
-            real_score = real_score.mean()
             loss.backward()
 
             for param in generator.parameters():
@@ -84,15 +82,15 @@ def train(cfg):
                 total_unavg_loss = evaluate_loss(ts, cfg.batch_size, data_loader, generator, discriminator)
 
                 metrics = {
-                    'total_unavg_loss': total_unavg_loss,
-                    'real_score_mean': real_score.item(),
-                    'fake_score_mean': generated_score.item(),
-                    'step': step
+                    'metrics/total_unavg_loss': total_unavg_loss,
+                    'metrics/real_score_mean': real_score.mean().item(),
+                    'metrics/fake_score_mean': generated_score.mean().item(),
+                    'metrics/step': step
                 }
 
                 if step > cfg.swa_step_start:
                     total_averaged_loss = evaluate_loss(ts, cfg.batch_size, data_loader, averaged_generator.module, averaged_discriminator.module)
-                    metrics['total_avg_loss'] = total_averaged_loss
+                    metrics['metrics/total_avg_loss'] = total_averaged_loss
 
 
                 trange.set_postfix({k: f"{v:.3f}" for k, v in metrics.items()})
@@ -125,10 +123,22 @@ def train(cfg):
 
                     # MODULE H: D
                     wandb.log({
-                        'probe/moduleH_d_mean': generated_score.item(),
-                        'probe/moduleH_d_std': generated_score.item()
+                        'probe/moduleH_d_mean': generated_score.mean().item(),
+                        'probe/moduleH_d_std': generated_score.std().item()
                     })
                     ################
+                
+                    # Per channel logging (skip time channel at ch=0)
+                    for ch in range(1, generated_samples.shape[-1]):
+                        ch_loss = generated_samples[..., ch].mean() - real_samples[..., ch].mean()
+                        wandb.log({
+                            f'channel_stats/channel_{ch}_gen_mean': generated_samples[..., ch].mean().item(),
+                            f'channel_stats/channel_{ch}_real_mean': real_samples[..., ch].mean().item(),
+                            f'channel_stats/channel_{ch}_gen_std': generated_samples[..., ch].std().item(),
+                            f'channel_stats/channel_{ch}_real_std': real_samples[..., ch].std().item(),
+                            f'channel_stats/channel_{ch}_loss': ch_loss
+                        })
+                
                 
             if step % cfg.samples_interval == 0 and cfg.use_wandb:
                 plot_wandb_samples(cfg, ts, step, generator, data_loader)
@@ -137,6 +147,7 @@ def train(cfg):
                     plot_wandb_samples(cfg, ts, step, averaged_generator, data_loader, avg=True)
 
         else:
+            dis_loss_sum = 0.0
             # Update discriminator 5 times per generator update
             for _ in range(cfg.d_updates_per_g):
                 # Get real and fake data
@@ -145,11 +156,12 @@ def train(cfg):
                     fake_data = generator(ts, cfg.batch_size)
 
                 # Get real and fake scores
-                real_score = discriminator(real_data).mean()
-                fake_score = discriminator(fake_data).mean()
+                real_scores = discriminator(real_data)
+                fake_scores = discriminator(fake_data)
 
-                # Get discriminator loss (fake_score - real_score)
-                dis_loss = discriminator_loss(real_score, fake_score)
+                # Get loss (fake_scores - real_scores)
+                dis_loss = wasserstein_loss(real_scores, fake_scores)
+                dis_loss_sum += dis_loss.item()
                 dis_loss.backward()
 
                 dis_optm.step()
@@ -161,33 +173,27 @@ def train(cfg):
                         if isinstance(module, torch.nn.Linear):
                             lim = 1 / module.out_features
                             module.weight.clamp_(-lim, lim)
+            
+            dis_loss = dis_loss_sum / cfg.d_updates_per_g
 
-            # Get fake data and score
+            # Get real and fake data
+            real_data = data_loader.next()
             fake_data = generator(ts, cfg.batch_size)
-            fake_score = discriminator(fake_data).mean()
 
-            # Get generator loss
-            gen_loss = generator_loss(fake_score)
+            # Get real and fake scores
+            with torch.no_grad():
+                real_scores = discriminator(real_data)
+            fake_scores = discriminator(fake_data)
+
+            # Get loss
+            gen_loss = wasserstein_loss(real_scores, fake_scores)
             gen_loss.backward()
 
-            # TODO WHAT DOES THIS DO??
             for param in generator.parameters():
                 param.grad *= -1
 
             gen_optm.step()
             gen_optm.zero_grad()
-
-            ###################
-            # TODO: MOVE TO ANOTHER FILE?
-            ###################
-            # We constrain the Lipschitz constant of the discriminator using carefully-chosen clipping (and the use of
-            # LipSwish activation functions).
-            ###################
-            with torch.no_grad():
-                for module in discriminator.modules():
-                    if isinstance(module, torch.nn.Linear):
-                        lim = 1 / module.out_features
-                        module.weight.clamp_(-lim, lim)
 
 
             # Stochastic weight averaging typically improves performance.
@@ -205,8 +211,8 @@ def train(cfg):
                     'discriminator_loss': dis_loss.item(),
                     'generator_loss': gen_loss.item(),
                     'total_unavg_loss': total_unavg_loss,
-                    'real_score_mean': real_score.item(),
-                    'fake_score_mean': fake_score.item(),
+                    'real_score_mean': real_scores.mean().item(),
+                    'fake_score_mean': fake_scores.mean().item(),
                     'step': step
                 }
                 trange.set_postfix({k: f"{v:.3f}" for k, v in metrics.items()})
@@ -245,10 +251,21 @@ def train(cfg):
 
                     # MODULE H: D
                     wandb.log({
-                        'probe/moduleH_d_mean': fake_score.item(),
-                        'probe/moduleH_d_std': fake_score.item()
+                        'probe/moduleH_d_mean': fake_scores.mean().item(),
+                        'probe/moduleH_d_std': fake_scores.std().item()
                     })
                     ################
+                
+                    # Per channel logging (skip time channel at ch=0)
+                    for ch in range(1, fake_data.shape[-1]):
+                        ch_loss = fake_data[..., ch].mean() - real_data[..., ch].mean()
+                        wandb.log({
+                            f'channel_stats/channel_{ch}_gen_mean': fake_data[..., ch].mean().item(),
+                            f'channel_stats/channel_{ch}_real_mean': real_data[..., ch].mean().item(),
+                            f'channel_stats/channel_{ch}_gen_std': fake_data[..., ch].std().item(),
+                            f'channel_stats/channel_{ch}_real_std': real_data[..., ch].std().item(),
+                            f'channel_stats/channel_{ch}_loss': ch_loss
+                        })
                 
             if step % cfg.samples_interval == 0 and cfg.use_wandb:
                 plot_wandb_samples(cfg, ts, step, generator, data_loader)

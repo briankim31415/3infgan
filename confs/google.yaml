@@ -1,5 +1,4 @@
 data_source: google
-t_size: 128 # Sample size
 dataset_size: 5000
 
 # W&B

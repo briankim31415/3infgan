@@ -28,7 +28,8 @@ class MLP(torch.nn.Module):
             # LipSwish activations are useful to constrain the Lipschitz constant of the discriminator.
             # (For simplicity we additionally use them in the generator, but that's less important.)
             ###################
-            model.append(LipSwish())
+            # model.append(LipSwish())
+            model.append(torch.nn.Softplus()) # Used in paper (Appendix)
         model.append(torch.nn.Linear(mlp_size, out_size))
         if tanh:
             model.append(torch.nn.Tanh())

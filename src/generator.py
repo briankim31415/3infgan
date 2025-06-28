@@ -1,6 +1,7 @@
 import torch
 import torchcde
 import torchsde
+import diffrax
 
 from .utils import MLP
 
@@ -34,6 +35,16 @@ class GeneratorFunc(torch.nn.Module):
         tx = torch.cat([t, x], dim=1)
         return self._drift(tx), self._diffusion(tx).view(x.size(0), self._hidden_size, self._noise_size)
 
+# class DiffraxGeneratorSDE(diffrax.AbstractSolver):
+#     def __init__(self, func):
+#         self.func = func
+
+#     def drift(self, t, y, args):
+#         return self.func.f_and_g(t, y)[0]
+
+#     def diffusion(self, t, y, args):
+#         return self.func.f_and_g(t, y)[1]
+
 
 ###################
 # Now we wrap it up into something that computes the SDE.
@@ -65,6 +76,22 @@ class Generator(torch.nn.Module):
         ###################
         xs = torchsde.sdeint_adjoint(self._func, self.x0, ts, method='reversible_heun', dt=self.dt,
                                      adjoint_method='adjoint_reversible_heun',)
+        # sde = DiffraxGeneratorSDE(self._func)
+        # solver = diffrax.ReversibleHeun()
+        # saveat = diffrax.SaveAt(ts=ts)
+
+        # sol = diffrax.diffeqsolve(
+        #     sde,
+        #     solver=solver,
+        #     t0=ts[0].item(),
+        #     t1=ts[-1].item(),
+        #     dt0=self.dt,
+        #     y0=self.x0,
+        #     args=None,
+        #     saveat=saveat,
+        #     stepsize_controller=diffrax.ConstantStepSize(),
+        # )
+        # xs = sol.ys
         xs = xs.transpose(0, 1)
         ys = self._readout(xs)
 

@@ -2,6 +2,7 @@ import torch
 import torchcde
 import torchsde
 import numpy as np
+import diffrax
 
 from .utils import get_data_csv, add_time_channel, remove_time_channel
 
@@ -46,6 +47,31 @@ class Data():
             y0 = torch.rand(self.cfg.dataset_size, device=self.cfg.device).unsqueeze(-1) * 2 - 1
             ts = torch.linspace(0, self.cfg.t_size - 1, self.cfg.t_size, device=self.cfg.device)
             ys = torchsde.sdeint(sde_gen, y0, ts, dt=1e-1) # 64, 8192, 1
+
+            # # Define drift and diffusion
+            # drift = diffrax.ODETerm(sde_gen.f)
+            # diffusion = diffrax.WeaklyDiagonalControlTerm(sde_gen.g)
+
+            # # Combine terms
+            # sde = diffrax.MultiTerm(drift, diffusion)
+
+            # # Create Brownian path
+            # bm = diffrax.VirtualBrownianTree(t0=ts[0].item(), t1=ts[-1].item(), tol=1e-3, shape=y0.shape)
+
+            # # Solve SDE
+            # sol = diffrax.diffeqsolve(
+            #     terms=sde,
+            #     solver=diffrax.EulerHeun(),
+            #     t0=ts[0].item(),
+            #     t1=ts[-1].item(),
+            #     dt0=0.1,
+            #     y0=y0,
+            #     saveat=diffrax.SaveAt(ts=ts),
+            #     brownian_path=bm,
+            #     sde_type=diffrax.SDEType.ITO
+            # )
+
+            # ys = sol.ys
         else:
             # Read from csv dataset
             df = get_data_csv(self.cfg.data_source)

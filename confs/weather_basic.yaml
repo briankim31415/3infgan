@@ -1,0 +1,7 @@
+data_source: weather
+dataset_size: 3000
+basic: true
+
+# W&B
+wandb_proj: 3infgan
+wandb_name: weather

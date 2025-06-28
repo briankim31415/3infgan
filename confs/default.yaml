@@ -6,8 +6,8 @@ mlp_size: 64
 num_layers: 2
 
 # Training hyperparams
-generator_lr: 2.0e-4
-discriminator_lr: 1.0e-3
+generator_lr: 4.0e-5
+discriminator_lr: 4.0e-5
 batch_size: 1024
 num_steps: 10000
 init_mult1: 3
@@ -15,9 +15,9 @@ init_mult2: 0.5
 weight_decay: 0.01
 swa_step_start: 5000
 dataset_size: 10000
-t_size: 64 # Sample size
-g_dt: 1.0
-d_dt: 1.0
+t_size: 128 # Sample size
+g_dt: 0.1
+d_dt: 0.1
 
 # Evaluation and plotting hyperparameters
 steps_per_print: 10 # How often to print the loss.
@@ -30,7 +30,7 @@ data_source: ou_proc
 seed: 0
 d_updates_per_g: 5
 data_col: None
-basic: true
+basic: false
 
 # W&B
 log_interval: 100

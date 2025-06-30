@@ -4,3 +4,6 @@ __pycache__/
 output/
 run_logs/
 wandb/
+download_images.py
+combine_images.py
+downloaded_images/

@@ -4,4 +4,4 @@ basic: true
 
 # W&B
 wandb_proj: 3infgan
-wandb_name: air_aoti
+wandb_name: air_aoti_basic

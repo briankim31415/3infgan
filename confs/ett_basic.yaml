@@ -4,4 +4,4 @@ basic: true
 
 # W&B
 wandb_proj: 3infgan
-wandb_name: ett
+wandb_name: ett_basic

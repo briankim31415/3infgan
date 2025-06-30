@@ -2,4 +2,4 @@ basic: true
 
 # W&B
 wandb_proj: 3infgan
-wandb_name: default
+wandb_name: default_basic

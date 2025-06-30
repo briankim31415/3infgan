@@ -1,4 +1,5 @@
 import wandb
+import os
 import matplotlib.pyplot as plt
 
 from. data import Data
@@ -37,6 +38,10 @@ def plot_wandb_samples(cfg, ts, step, generator, data_loader: Data, avg=False):
     num_channels = real_samples.size(-1) - 1
     channel_indices = range(1, num_channels + 1)
 
+    safe_timestamp = cfg.timestamp.replace("/", "-")
+    output_dir = f"output/{safe_timestamp}"
+    os.makedirs(output_dir, exist_ok=True)
+
     # Plot each channel
     for v in channel_indices:
         for i, real_sample_ in enumerate(real_samples):
@@ -50,6 +55,12 @@ def plot_wandb_samples(cfg, ts, step, generator, data_loader: Data, avg=False):
         title = f"{'[AVG] ' if avg else ''}Step {step}: {num_plot_samples} real vs fake samples{channel_title}"
         plt.title(title)
         fig = wandb.Image(plt)
-        key = f"Averaged model samples{channel_title}" if avg else f"Samples{channel_title}"
+        if avg:
+            key = f"Averaged model samples{channel_title}"
+            image_path = f"{output_dir}/{cfg.wandb_name}_avg_c{v}.png"
+        else:
+            key = f"Samples{channel_title}"
+            image_path = f"{output_dir}/{cfg.wandb_name}_c{v}.png"
         wandb.log({key: fig})
+        plt.savefig(image_path)
         plt.close()

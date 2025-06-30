@@ -39,6 +39,7 @@ def wasserstein_loss(real_scores, fake_scores, discriminator=None, real_data=Non
         'losses/mean': m_loss.item()
     })
     
+    # Add gradient penalty (todo later)
     # if self.lipschitz_method == 'gp' and discriminator is not None:
     #     # Add gradient penalty
     #     gp = gradient_penalty(discriminator, real_data, fake_data, self.gp_lambda)

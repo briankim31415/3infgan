@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from. data import Data
 
 def start_wandb(cfg):
+    # Initialize wandb for logging
     if cfg.use_wandb:
         if cfg.config_num == 0:
             name = f'{cfg.wandb_name}_[{cfg.timestamp}]'
@@ -21,6 +22,7 @@ def start_wandb(cfg):
             )
 
 def close_wandb(cfg):
+    # Close wandb instance
     if cfg.use_wandb:
         wandb.finish()
 

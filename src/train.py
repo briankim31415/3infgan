@@ -31,7 +31,6 @@ def train(cfg):
     swa_scheduler_g = SWALR(gen_optm, swa_lr=cfg.generator_lr * 0.1)
     swa_scheduler_d = SWALR(dis_optm, swa_lr=cfg.discriminator_lr * 0.1)
 
-    # TODO UPDATE THESE PARAMETERS
     # Picking a good initialisation is important!
     # In this case these were picked by making the parameters for the t=0 part of the generator be roughly the right
     # size that the untrained t=0 distribution has a similar variance to the t=0 data distribution.
@@ -147,8 +146,8 @@ def train(cfg):
                     plot_wandb_samples(cfg, ts, step, averaged_generator, data_loader, avg=True)
 
         else:
-            dis_loss_sum = 0.0
             # Update discriminator 5 times per generator update
+            dis_loss_sum = 0.0
             for _ in range(cfg.d_updates_per_g):
                 # Get real and fake data
                 real_data = data_loader.next()
@@ -197,7 +196,7 @@ def train(cfg):
 
 
             # Stochastic weight averaging typically improves performance.
-            if step > cfg.swa_step_start: # TODO: make this a multiple of a config param (i.e. cfg.0.5 * steps)
+            if step > cfg.swa_step_start:
                 averaged_generator.update_parameters(generator)
                 averaged_discriminator.update_parameters(discriminator)
                 swa_scheduler_g.step()

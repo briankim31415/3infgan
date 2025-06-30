@@ -15,7 +15,7 @@ init_mult2: 0.5
 weight_decay: 0.01
 swa_step_start: 5000
 dataset_size: 10000
-t_size: 24 # Sample size
+t_size: 128 # Sample size
 g_dt: 1.0
 d_dt: 1.0
 

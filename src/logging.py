@@ -57,10 +57,10 @@ def plot_wandb_samples(cfg, ts, step, generator, data_loader: Data, avg=False):
         fig = wandb.Image(plt)
         if avg:
             key = f"Averaged model samples{channel_title}"
-            image_path = f"{output_dir}/{cfg.wandb_name}_avg_c{v}.png"
+            image_path = f"{output_dir}/{cfg.wandb_name}_avg_c{v}_{step}.png"
         else:
             key = f"Samples{channel_title}"
-            image_path = f"{output_dir}/{cfg.wandb_name}_c{v}.png"
+            image_path = f"{output_dir}/{cfg.wandb_name}_c{v}_{step}.png"
         wandb.log({key: fig})
         plt.savefig(image_path)
         plt.close()

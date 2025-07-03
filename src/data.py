@@ -162,6 +162,7 @@ class Data():
 
         # Read city-split data and identify trajectory start indices
         df = get_data_csv(self.cfg.data_source)
+        self.cols = ["latitude", "longitude", "altitude"]
         traj_groups = df.groupby("trajectory_id").groups
         valid_starts = [indices[0] for indices in traj_groups.values() if len(indices) >= t_size]
         selected_starts = np.random.choice(valid_starts, size=min(self.cfg.dataset_size, len(valid_starts)), replace=False)

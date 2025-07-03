@@ -2,6 +2,7 @@ import torch
 import torchcde
 import torchsde
 import numpy as np
+import pandas as pd
 
 from .utils import get_data_csv, add_time_channel, remove_time_channel
 
@@ -39,6 +40,9 @@ class Data():
             y0 = torch.rand(self.cfg.dataset_size, device=self.cfg.device).unsqueeze(-1) * 2 - 1
             ts = torch.linspace(0, self.cfg.t_size - 1, self.cfg.t_size, device=self.cfg.device)
             ys = torchsde.sdeint(sde_gen, y0, ts, dt=1e-1) # 64, 8192, 1
+        elif self.cfg.data_source == "geolife":
+            # Custom data loading for Geolife dataset
+            ys = self.geolife_dataloader(self.cfg.t_size)
         else:
             # Read from csv dataset
             df = get_data_csv(self.cfg.data_source)
@@ -150,5 +154,27 @@ class Data():
 
         # Return samples with time channel
         return add_time_channel(self.ts, real_samples)
+    
+    def geolife_dataloader(self, t_size):
+        """Custom dataloader for Geolife dataset."""
+        if t_size > 100:
+            raise ValueError("t_size cannot be greater than 100 for the Geolife dataset.")
 
+        # Read city-split data and identify trajectory start indices
+        df = get_data_csv(self.cfg.data_source)
+        traj_groups = df.groupby("trajectory_id").groups
+        valid_starts = [indices[0] for indices in traj_groups.values() if len(indices) >= t_size]
+        selected_starts = np.random.choice(valid_starts, size=min(self.cfg.dataset_size, len(valid_starts)), replace=False)
+
+        # Get data samples from trajectory starts
+        sampled_data = []
+        for start in selected_starts:
+            traj_data = df.iloc[start:start + t_size][["latitude", "longitude", "altitude"]].to_numpy()
+            sampled_data.append(traj_data)
+        sampled_data = np.array(sampled_data)
+
+        # Create and return data tensor
+        data_tensor = torch.tensor(sampled_data, dtype=torch.float32, device=self.cfg.device)
+        ys = data_tensor.transpose(0, 1)
+        return ys
     

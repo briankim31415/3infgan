@@ -1,0 +1,10 @@
+data_source: geolife
+dataset_size: 10000
+t_size: 100
+basic: true
+initial_noise_size: 5
+noise_size: 3
+
+# W&B
+wandb_proj: 3infgan
+wandb_name: geolife_basic

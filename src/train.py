@@ -52,7 +52,7 @@ def train(cfg):
             generated_score = discriminator(generated_samples)
             real_score = discriminator(real_samples)
             # loss = generated_score - real_score
-            loss = wasserstein_loss(real_score, generated_score)
+            loss = wasserstein_loss(cfg, real_score, generated_score)
             loss.backward()
 
             for param in generator.parameters():
@@ -159,7 +159,7 @@ def train(cfg):
                 fake_scores = discriminator(fake_data)
 
                 # Get loss (fake_scores - real_scores)
-                dis_loss = wasserstein_loss(real_scores, fake_scores)
+                dis_loss = wasserstein_loss(cfg, real_scores, fake_scores)
                 dis_loss_sum += dis_loss.item()
                 dis_loss.backward()
 
@@ -185,7 +185,7 @@ def train(cfg):
             fake_scores = discriminator(fake_data)
 
             # Get loss
-            gen_loss = wasserstein_loss(real_scores, fake_scores)
+            gen_loss = wasserstein_loss(cfg, real_scores, fake_scores)
             gen_loss.backward()
 
             for param in generator.parameters():

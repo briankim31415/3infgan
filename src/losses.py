@@ -23,7 +23,7 @@ def wasserstein_distance(x, y, p=1):
     # Element-wise distance, then take p-norm
     return torch.mean(torch.abs(x_sorted - y_sorted) ** p) ** (1. / p)
 
-def wasserstein_loss(real_scores, fake_scores, discriminator=None, real_data=None, fake_data=None):
+def wasserstein_loss(cfg, real_scores, fake_scores, discriminator=None, real_data=None, fake_data=None):
     w_loss = None
     if real_scores.size() == fake_scores.size():
         # Calculate Wasserstein distance if arrays are same size
@@ -34,10 +34,11 @@ def wasserstein_loss(real_scores, fake_scores, discriminator=None, real_data=Non
     m_loss = fake_scores.mean() - real_scores.mean()
 
     # Log both mean and wasserstein loss for analysis
-    wandb.log({
-        'losses/was_dist': w_loss.item() if w_loss is not None else 0,
-        'losses/mean': m_loss.item()
-    })
+    if cfg.use_wandb:
+        wandb.log({
+            'losses/was_dist': w_loss.item() if w_loss is not None else 0,
+            'losses/mean': m_loss.item()
+        })
     
     # Add gradient penalty (todo later)
     # if self.lipschitz_method == 'gp' and discriminator is not None:

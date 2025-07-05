@@ -1,0 +1,10 @@
+data_source: geolife
+dataset_size: 10000
+t_size: 100
+initial_noise_size: 5
+noise_size: 3
+data_col: longitude
+
+# W&B
+wandb_proj: 3infgan-geolife
+wandb_name: geolife_simple

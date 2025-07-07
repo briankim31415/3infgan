@@ -32,7 +32,8 @@ infinite-gans/
 │   ├── problem_statement.md # Formulation of project goal
 │   ├── breakdown_ryan.md    # Infinite GAN breakdown by Ryan Roby
 │   ├── datasets.md          # Overview of included datasets
-│   └── demo.md              # Showcase of current results
+│   ├── demo.md              # Showcase of current results
+│   └── tasks.md             # Project tasks timeline
 ├── src/                  # Core implementation
 │   ├── run.py               # Command-line interface
 │   ├── train.py             # Training loop

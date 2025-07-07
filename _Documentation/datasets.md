@@ -7,7 +7,7 @@ This document describes the datasets used in our study. Two main categories are 
 
 ## 1. Testing Datasets
 
-The [Ornstein-Uhlenbeck process](#11-ornsteinuhlenbeck-process), [Google Stock](#12-google-stock), [Weather](#13-weather-max-planck-institute), and [Air Quality](#14-air-quality-beijing) datasets were used in the original [Infinite GAN](https://arxiv.org/abs/2209.12894) paper.
+The [Ornstein-Uhlenbeck process](#11-ornsteinuhlenbeck-process), [Google Stock](#12-google-stock), [Weather](#13-weather-max-planck-institute-weather-station), and [Air Quality](#14-air-quality-uci-ml-repository) datasets were used in the original [Infinite GAN](https://arxiv.org/abs/2209.12894) paper.
 
 ### 1.1 Ornstein–Uhlenbeck Process
 

@@ -2,7 +2,7 @@
 
 This document presents a concise overview of the current progress and capabilities of Infinite GANs. Each example demonstrates how the model learns to generate synthetic time-series data across different domains, with training visualizations and performance metrics logged to Weights & Biases (W&B).
 
-## Basic Example: [Ornstein-Uhlenbeck Process](https://github.com/briankim31415/3infgan/blob/main/_Documentation/datasets.md#11-ornsteinuhlenbeck-process)
+## Basic Example: [Ornstein-Uhlenbeck Process](./datasets.md#11-ornsteinuhlenbeck-process)
 
 As a foundational test, Infinite GAN is trained to learn the Ornstein-Uhlenbeck (OU) process—a classic mean-reverting stochastic process commonly used in time-series modeling. This benchmark provides insight into the model’s ability to capture simple temporal dynamics.
 
@@ -35,7 +35,7 @@ Taking the difference of the scores gives the Wasserstein loss. The evolution of
 
 Convergence is typically observed around step 3,000, where real and fake discriminator scores align and Wasserstein loss approaches zero. This suggests the discriminator struggles to differentiate between real and fake distributions, which is an indicator of learning success for this simple process.
 
-## Testing Dataset: [Google Stock](https://github.com/briankim31415/3infgan/blob/main/_Documentation/datasets.md#12-google-stock)
+## Testing Dataset: [Google Stock](./datasets.md#12-google-stock)
 
 6 features of daily stock market data for Google from 2004 to 2022. This run used the simplified training setup (`basic` logic) from the `torchsde` example for improved stability. Training completed in 45 minutes on TACC's Vista server.
 
@@ -66,7 +66,7 @@ The samples exhibit somewhat similar overall trends but are too volatile, failin
 
 Although discriminator scores and Wasserstein loss show early convergence, this is not indicative of accurate imitation. The fake samples stabilize in form, but diverge from real sample characteristics.
 
-## Urban Datatset: [Geolife](https://github.com/briankim31415/3infgan/blob/main/_Documentation/datasets.md#21-geolife)
+## Urban Datatset: [Geolife](./datasets.md#21-geolife)
 
 Latitude, longitude, and altitude GPS coordinate trajectories. The dataset was filtered to contain only trajectories in Beijing, China with at least 100 data points (14,702 trajectories).
 

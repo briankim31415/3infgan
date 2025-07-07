@@ -1,6 +1,0 @@
-data_source: test_mc
-t_size: 2 # Sample size
-
-# W&B
-wandb_proj: 3infgan
-wandb_name: multi-channel_test

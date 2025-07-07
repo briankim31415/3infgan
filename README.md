@@ -99,6 +99,15 @@ sbatch <job_file>.sbatch
 
 Edit the `.sbatch` file to point to the config and parameters you want to use.
 
+### ⚙️ Config Directory Structure
+
+Each config file begins with the data source name. In the case of the Ornstein-Uhlenbeck process, it is set as the `default` data source. There are 2 types of configuration files per data source:
+
+-   `{data_source}.yaml` runs the expanded training logic with 5 discriminator updates per generator update.
+-   `{data_source}_basic.yaml` runs the basic training logic with 1 discriminator update per generator update.
+
+The `simple` designation for the `geolife` dataset tests performance on only 1 column of the dataset for validation purposes.
+
 ## 📚 Citation
 
 If you use this codebase, please cite the original work:

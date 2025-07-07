@@ -48,7 +48,7 @@ python -m src.run --use_wandb --online --cfg_name=google_basic
 The model is trained for 10,000 steps using batches of 1,024 samples, each consisting of 24 time steps. During training, Infinite GAN generates synthetic samples every 1,000 steps, allowing us to monitor its learning progression. 3 of the 6 features are shown below:
 
 <p align="center">
-  <img src="../figures/google_basic_samples.gif" alt="Google stock real vs fake samples" width="800"/>
+  <img src="../figures/google_basic_samples.gif" alt="Google stock real vs fake samples" width="900"/>
   <i style="color:gray;"><br>Fig. 4) Comparison of real vs fake samples of 3 Google stock features</i>
 </p>
 
@@ -79,7 +79,7 @@ python -m src.run --use_wandb --online --cfg_name=geolife
 The model is trained for 10,000 steps using batches of 1,024 samples, each consisting of 100 time steps. This run used an expanded training regime, with five discriminator updates per generator update. This increases the effective number of training steps logged to W&B (10,000 steps become 60,000 steps). The entire training process completed in 12 hours and 53 minutes on TACC's Vista server. During training, Infinite GAN generates synthetic samples every 1,000 steps (every 6,000 effective steps), allowing us to monitor its learning progression.
 
 <p align="center">
-  <img src="../figures/geolife_samples.gif" alt="Geolife real vs fake samples" width="800"/>
+  <img src="../figures/geolife_samples.gif" alt="Geolife real vs fake samples" width="900"/>
   <i style="color:gray;"><br>Fig. 7) Comparison of real vs fake samples of Geolife features</i>
 </p>
 

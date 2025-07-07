@@ -54,6 +54,8 @@ The [Ornstein-Uhlenbeck process](#11-ornsteinuhlenbeck-process), [Google Stock](
 
 ### 2.1 [Geolife](https://www.microsoft.com/en-us/download/details.aspx?id=52367)
 
+> Not included in GitHub repository due to large file size.
+
 -   **Dimensions**: 3
 -   **Data points**: 24,876,978
 -   **Location precision**: Latitude, longitude in degrees; altitude in feet

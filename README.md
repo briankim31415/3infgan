@@ -6,13 +6,6 @@ This repository explores the use of **Neural SDEs as Infinite-Dimensional GANs**
 
 ---
 
-## ✅ TODO
-
--   [ ] Test on mobility dataset
--   [ ] Compile OSR dataset
-
----
-
 ## 🔬 Background
 
 This project builds on the paper:

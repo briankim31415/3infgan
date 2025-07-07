@@ -1,6 +1,6 @@
 # [Infinite GAN Breakdown](https://arxiv.org/abs/2102.03657)
 
-> Author: Ryan Roby
+> **Author:** Ryan Roby<br>**Original link:** [HackMD](https://hackmd.io/@3CAG1BWjQp6My_MJqj1Xcg/Sy7rKt-Slg)
 
 Infinite GAN uses a GAN framework to model stochastic signals with an arbitrary number of timesteps and dimensions (hence "infinite dimensions"), where the dynamics are governed by a stochastic differential equation (SDE) defined as:
 

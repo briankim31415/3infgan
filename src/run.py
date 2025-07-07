@@ -1,6 +1,17 @@
+"""
+RUN.PY
+
+This file contains the main runner class for the Infinite GAN.
+
+It contains the following functions:
+- parse_args: Create a parser and add arguments for command line.
+- set_def_args: Set default config parameters to argument values.
+- main: Main runner class for Infinite GANs.
+"""
+
+
 import argparse
 from datetime import datetime
-
 from .train import train
 from .utils import load_config_file, load_csv_cfgs, overwrite_cfg, get_device
 

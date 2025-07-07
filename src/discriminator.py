@@ -1,17 +1,32 @@
+"""
+DISCRIMINATOR.PY
+
+This file contains the discriminator class for the Infinite GAN.
+This code is taken from the "Neural SDEs as Infinite-Dimensional GANs" paper.
+
+It contains the following classes:
+- DiscriminatorFunc: A class for the discriminator function.
+- Discriminator: A class for the discriminator.
+
+It contains the following functions:
+- forward: Forward pass of the discriminator.
+"""
+
+
 import torch
 import torchcde
-
 from .utils import MLP
 
-###################
-# Next the discriminator. Here, we're going to use a neural controlled differential equation (neural CDE) as the
-# discriminator, just as in the "Neural SDEs as Infinite-Dimensional GANs" paper. (You could use other things as well,
-# but this is a natural choice.)
-#
-# There's actually a few different (roughly equivalent) ways of making the discriminator work. The curious reader is
-# encouraged to have a read of the comment at the bottom of this file for an in-depth explanation.
-###################
 class DiscriminatorFunc(torch.nn.Module):
+    """
+    Discriminator function class.
+
+    Args:
+        data_size: Size of the data.
+        hidden_size: Size of the hidden layer.
+        mlp_size: Size of the MLP.
+        num_layers: Number of layers in the MLP.
+    """
     def __init__(self, data_size, hidden_size, mlp_size, num_layers):
         super().__init__()
         self._data_size = data_size
@@ -29,6 +44,16 @@ class DiscriminatorFunc(torch.nn.Module):
 
 
 class Discriminator(torch.nn.Module):
+    """
+    Discriminator class.
+
+    Args:
+        data_size: Size of the data.
+        hidden_size: Size of the hidden layer.
+        mlp_size: Size of the MLP.
+        num_layers: Number of layers in the MLP.
+        d_dt: Time step.
+    """
     def __init__(self, data_size, hidden_size, mlp_size, num_layers, d_dt):
         super().__init__()
 

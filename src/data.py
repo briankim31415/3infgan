@@ -1,12 +1,38 @@
+"""
+DATA.PY
+
+This file contains the data class for the Infinite GAN.
+It is used to load the config dataset and create a torch dataloader for it.
+
+It contains the following classes:
+- OrnsteinUhlenbeckSDE: A class for the Ornstein-Uhlenbeck SDE.
+- Data: A class object that contains the dataloader and other data-related functions.
+
+It contains the following functions:
+- create_dataloader: Creates a dataloader for the dataset.
+- next: Returns the next batch of samples.
+- get_fake_samples: Returns the denormalized fake samples with time channel.
+- get_real_samples: Returns the denormalized real samples with time channel.
+- geolife_dataloader: Custom dataloader for the Geolife dataset.
+"""
+
+
 import torch
 import torchcde
 import torchsde
 import numpy as np
-import pandas as pd
-
 from .utils import get_data_csv, add_time_channel, remove_time_channel
 
 class OrnsteinUhlenbeckSDE(torch.nn.Module):
+    """
+    Ornstein-Uhlenbeck SDE class.
+
+    Args:
+        mu: Mean of the SDE.
+        theta: Speed of mean reversion.
+        sigma: Volatility of the SDE.
+        t_size: Time steps.
+    """
     def __init__(self, mu, theta, sigma, t_size, sde_type='ito', noise_type='scalar'):
         super().__init__()
         self.register_buffer('mu', torch.as_tensor(mu))
@@ -17,12 +43,20 @@ class OrnsteinUhlenbeckSDE(torch.nn.Module):
         self.noise_type = noise_type
 
     def f(self, t, y):
+        """Drift function of the Ornstein-Uhlenbeck SDE."""
         return self.mu * t - self.theta * y
 
     def g(self, t, y):
+        """Diffusion function of the Ornstein-Uhlenbeck SDE."""
         return self.sigma.expand(y.size(0), 1, 1) * (2 * t / self.t_size)
 
 class Data():
+    """
+    Data class.
+
+    Args:
+        cfg: Configuration object.
+    """
     def __init__(self, cfg):
         self.cfg = cfg
         self.mean = []
@@ -34,6 +68,7 @@ class Data():
         self.infinite_train_dataloader = (elem for it in iter(lambda: self.dataloader, None) for elem in it)
 
     def create_dataloader(self):
+        """Create a dataloader for the dataset."""
         if self.cfg.data_source == "ou_proc":
             # Generate Ornstein-Uhlenbeck process
             sde_gen = OrnsteinUhlenbeckSDE(mu=0.02, theta=0.1, sigma=0.4, t_size=self.cfg.t_size).to(self.cfg.device)
@@ -113,12 +148,12 @@ class Data():
         return data_size, dataloader
 
     def next(self):
-        """Return next batch of samples."""
+        """Return next batch of samples from the dataloader."""
         real_data, = next(self.infinite_train_dataloader)
         return real_data
 
     def get_fake_samples(self, generator):
-        """Return denormalized fake samples with time channel."""
+        """Return denormalized fake samples with time channel from the generator."""
         # Generate fake data
         generator.eval()
         with torch.no_grad():
@@ -139,7 +174,7 @@ class Data():
         return add_time_channel(self.ts, fake_samples)
 
     def get_real_samples(self):
-        """Return denormalized real samples with time channel."""
+        """Return denormalized real samples with time channel from the dataloader."""
         # Get real data
         next = self.next()
         real_data = remove_time_channel(next)
@@ -156,7 +191,7 @@ class Data():
         return add_time_channel(self.ts, real_samples)
     
     def geolife_dataloader(self, t_size):
-        """Custom dataloader for Geolife dataset."""
+        """Custom dataloader for the Geolife dataset."""
         if t_size > 100:
             raise ValueError("t_size cannot be greater than 100 for the Geolife dataset.")
 

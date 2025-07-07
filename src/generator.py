@@ -1,16 +1,33 @@
+"""
+GENERATOR.PY
+
+This file contains the generator class for the Infinite GAN.
+This code is taken from the "Neural SDEs as Infinite-Dimensional GANs" paper.
+
+It contains the following classes:
+- GeneratorFunc: A class for the generator function.
+- Generator: A class for the generator.
+
+It contains the following functions:
+- forward: Forward pass of the generator.
+"""
+
+
 import torch
 import torchcde
 import torchsde
-# import diffrax
-
 from .utils import MLP
 
-###################
-# Now we define the SDEs.
-#
-# We begin by defining the generator SDE.
-###################
 class GeneratorFunc(torch.nn.Module):
+    """
+    Generator function class.
+
+    Args:
+        noise_size: Size of the noise.
+        hidden_size: Size of the hidden layer.
+        mlp_size: Size of the MLP.
+        num_layers: Number of layers in the MLP.
+    """
     sde_type = 'stratonovich'
     noise_type = 'general'
     def __init__(self, noise_size, hidden_size, mlp_size, num_layers):
@@ -40,6 +57,18 @@ class GeneratorFunc(torch.nn.Module):
 # Now we wrap it up into something that computes the SDE.
 ###################
 class Generator(torch.nn.Module):
+    """
+    Generator class.
+
+    Args:
+        data_size: Size of the data.
+        initial_noise_size: Size of the initial noise.
+        noise_size: Size of the noise.
+        hidden_size: Size of the hidden layer.
+        mlp_size: Size of the MLP.
+        num_layers: Number of layers in the MLP.
+        g_dt: Time step.
+    """
     def __init__(self, data_size, initial_noise_size, noise_size, hidden_size, mlp_size, num_layers, g_dt):
         super().__init__()
         self._initial_noise_size = initial_noise_size

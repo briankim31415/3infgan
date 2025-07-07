@@ -1,8 +1,21 @@
+"""
+TRAIN.PY
+
+This file contains the training loop for the Infinite GAN.
+cfg.basic is a boolean that determines if the training loop is basic or not.
+The basic training loop is the one used in the "Neural SDEs as Infinite-Dimensional GANs" paper.
+The non-basic training loop builds on the basic training loop by updating the discriminator multiple times per generator update.
+This is a standard practice in GANs. It is also used in the experiments of the "Neural SDEs as Infinite-Dimensional GANs" paper.
+
+It contains the following functions:
+- train: Main training loop.
+"""
+
+
 import torch
 from torch.optim.swa_utils import AveragedModel, SWALR
 import tqdm
 import wandb
-
 from .data import Data
 from .generator import Generator
 from .discriminator import Discriminator
@@ -11,50 +24,58 @@ from .logging import start_wandb, close_wandb, plot_wandb_samples
 from .utils import set_seed
 
 
-
 def train(cfg):
+    """Main training loop."""
+
+    # Set seed.
     set_seed(cfg.seed)
     start_wandb(cfg)
     
+    # Create data loader.
     data_loader = Data(cfg)
     ts = data_loader.ts
     data_size = data_loader.data_size
 
+    # Create generator and discriminator.
     generator = Generator(data_size, cfg.initial_noise_size, cfg.noise_size, cfg.hidden_size, cfg.mlp_size, cfg.num_layers, cfg.g_dt).to(cfg.device)
     discriminator = Discriminator(data_size, cfg.hidden_size, cfg.mlp_size, cfg.num_layers, cfg.d_dt).to(cfg.device)
 
+    # Create optimizers.
     gen_optm = torch.optim.Adadelta(generator.parameters(), lr=cfg.generator_lr, weight_decay=cfg.weight_decay)
     dis_optm = torch.optim.Adadelta(discriminator.parameters(), lr=cfg.discriminator_lr, weight_decay=cfg.weight_decay)
 
+    # Create averaged models.
     averaged_generator = AveragedModel(generator)
     averaged_discriminator = AveragedModel(discriminator)
     swa_scheduler_g = SWALR(gen_optm, swa_lr=cfg.generator_lr * 0.1)
     swa_scheduler_d = SWALR(dis_optm, swa_lr=cfg.discriminator_lr * 0.1)
 
-    # Picking a good initialisation is important!
-    # In this case these were picked by making the parameters for the t=0 part of the generator be roughly the right
-    # size that the untrained t=0 distribution has a similar variance to the t=0 data distribution.
-    # Then the func parameters were adjusted so that the t>0 distribution looked like it had about the right variance.
-    # What we're doing here is very crude -- one can definitely imagine smarter ways of doing things.
-    # (e.g. pretraining the t=0 distribution)
+    # Initialize generator parameters.
     with torch.no_grad():
         for param in generator._initial.parameters():
             param *= cfg.init_mult1
         for param in generator._func.parameters():
             param *= cfg.init_mult2
 
+    # Training loop.
     trange = tqdm.tqdm(range(cfg.num_steps))
     for step in trange:
         if cfg.basic:
+            # Get real samples.
             real_samples = data_loader.next()
 
+            # Get generated samples.
             generated_samples = generator(ts, cfg.batch_size)
+
+            # Get discriminator scores.
             generated_score = discriminator(generated_samples)
             real_score = discriminator(real_samples)
-            # loss = generated_score - real_score
+
+            # Get loss.
             loss = wasserstein_loss(cfg, real_score, generated_score)
             loss.backward()
 
+            # Update generator and discriminator.
             for param in generator.parameters():
                 param.grad *= -1
             gen_optm.step()

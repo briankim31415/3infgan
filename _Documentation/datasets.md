@@ -55,17 +55,17 @@ The [Ornstein-Uhlenbeck process](#11-ornsteinuhlenbeck-process), [Google Stock](
 ### 2.1 [Geolife](https://www.microsoft.com/en-us/download/details.aspx?id=52367)
 
 -   **Dimensions**: 3
--   **Data points**: 18,670
+-   **Data points**: 24,876,978
 -   **Location precision**: Latitude, longitude in degrees; altitude in feet
 -   **Time granularity**: 91% of trajectories logged every 1~5 seconds or every 5~10 meters
 -   **Time span**: Apr 5, 2007 – Jul 12, 2012
 -   **Location**: Primarily Beijing, China
--   **Description**: GPS trajectory dataset of 182 users over five years primarily in Beijing, China. Captures human mobility patterns with fine-grained spatial and temporal resolution. Each trajectory includes latitude, longitude, and altitude, offering a rich source of movement behaviors for urban modeling tasks.
+-   **Description**: Dataset of 18,670 GPS trajectories of 182 users over five years primarily in Beijing, China. Captures human mobility patterns with fine-grained spatial and temporal resolution. Each trajectory includes latitude, longitude, and altitude, offering a rich source of movement behaviors for urban modeling tasks. The average trajectory length is 1,332 data points.
 
 ### 2.2 Human Mobility Prediction Challenge 2023 ([_Metropolitan Scale and Longitudinal Dataset of Anonymized Human Mobility Trajectories_](https://arxiv.org/pdf/2307.03401))
 
 -   **Dimensions**: 2
--   **Data points**: _TBD_
+-   **Data points**: 140,924,924
 -   **Location precision**: 500x500 meter tiles on 200x200 tile grid
 -   **Time granularity**: 30 minutes
 -   **Time span**: 90 days

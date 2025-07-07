@@ -1,3 +1,23 @@
+"""
+UTILS.PY
+
+This file contains the utility functions for the Infinite GAN.
+
+It contains the following classes:
+- LipSwish: Approximation of LipSwish activation function.
+- MLP: MLP neural net class object for generator and discriminator.
+
+It contains the following functions:
+- set_seed: Set random seeds for reproducibility.
+- get_device: Determine the appropriate device for PyTorch computations.
+- add_time_channel: Add time as first channel to trajectories.
+- remove_time_channel: Remove time from first channel of trajectories.
+- load_config_file: Load the configuration file from the /confs directory.
+- overwrite_cfg: Overwrite values in the first config with those in the overwrite config.
+- load_csv_cfgs: Load a CSV file and return a list of SimpleNamespace objects.
+"""
+
+
 import torch
 import yaml
 import csv

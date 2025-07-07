@@ -1,19 +1,22 @@
+"""
+LOSSES.PY
+
+This file contains the loss functions for the Infinite GAN.
+
+It contains the following functions:
+- wasserstein_distance: Approximate Wasserstein-p distance between two 1D tensors using sorting and retains gradients.
+- wasserstein_loss: Compute Wasserstein loss (and mean loss for logging).
+- generator_loss: Compute generator loss.
+- apply_weight_clipping: Apply weight clipping to enforce Lipschitz constraint.
+- evaluate_loss: Evaluate loss on a dataset.
+"""
+
+
 import torch
 import wandb
 
 def wasserstein_distance(x, y, p=1):
-    """
-    Approximate Wasserstein-p distance between two 1D tensors using sorting.
-    Retains gradients.
-
-    Args:
-        x (Tensor): shape [batch_size, 1] or [batch_size]
-        y (Tensor): shape [batch_size, 1] or [batch_size]
-        p (int): power (1 for W1, 2 for W2, etc.)
-
-    Returns:
-        Tensor: scalar Wasserstein distance
-    """
+    """Approximate Wasserstein-p distance between two 1D tensors using sorting and retains gradients."""
     x = x.view(-1)
     y = y.view(-1)
 
@@ -24,6 +27,7 @@ def wasserstein_distance(x, y, p=1):
     return torch.mean(torch.abs(x_sorted - y_sorted) ** p) ** (1. / p)
 
 def wasserstein_loss(cfg, real_scores, fake_scores, discriminator=None, real_data=None, fake_data=None):
+    """Compute Wasserstein loss (and mean loss for logging)."""
     w_loss = None
     if real_scores.size() == fake_scores.size():
         # Calculate Wasserstein distance if arrays are same size
@@ -50,8 +54,8 @@ def wasserstein_loss(cfg, real_scores, fake_scores, discriminator=None, real_dat
     return loss
 
 def generator_loss(d_fake):
-        """Compute generator loss."""
-        return -d_fake.mean()
+    """Compute generator loss."""
+    return -d_fake.mean()
 
 def apply_weight_clipping(model, clip_value=0.01):
     """Apply weight clipping to enforce Lipschitz constraint."""
@@ -59,6 +63,7 @@ def apply_weight_clipping(model, clip_value=0.01):
         p.data.clamp_(-clip_value, clip_value)
 
 def evaluate_loss(ts, batch_size, data_loader, generator, discriminator):
+    """Evaluate loss on a dataset."""
     generator.eval()
     discriminator.eval()
     with torch.no_grad():
@@ -68,7 +73,7 @@ def evaluate_loss(ts, batch_size, data_loader, generator, discriminator):
             generated_samples = generator(ts, batch_size)
             generated_score = discriminator(generated_samples).mean()
             real_score = discriminator(real_samples).mean()
-            loss = generated_score - real_score # TODO maybe update with wasserstein?
+            loss = generated_score - real_score
             total_samples += batch_size
             total_loss += loss.item() * batch_size
     generator.train()

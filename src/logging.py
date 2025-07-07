@@ -1,11 +1,22 @@
+"""
+LOGGING.PY
+
+This file contains the logging functions for the Infinite GAN.
+
+It contains the following functions:
+- start_wandb: Start wandb for logging.
+- close_wandb: Close wandb instance.
+- plot_wandb_samples: Generate and plot samples locally and upload to wandb.
+"""
+
+
 import wandb
 import os
 import matplotlib.pyplot as plt
-
 from. data import Data
 
 def start_wandb(cfg):
-    # Initialize wandb for logging
+    """Start wandb for logging."""
     if cfg.use_wandb:
         if cfg.config_num == 0:
             name = f'{cfg.wandb_name}_[{cfg.timestamp}]'
@@ -22,12 +33,13 @@ def start_wandb(cfg):
             )
 
 def close_wandb(cfg):
-    # Close wandb instance
+    """Close wandb instance."""
     if cfg.use_wandb:
         wandb.finish()
 
 def plot_wandb_samples(cfg, ts, step, generator, data_loader: Data, avg=False):
-    # Get real and fake data
+    """Generate and plot samples locally and upload to wandb."""
+    # Get real and fake data.
     real_samples = data_loader.get_real_samples()
     fake_samples = data_loader.get_fake_samples(generator)
 

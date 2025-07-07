@@ -72,7 +72,7 @@ infinite-gans/
 ### ▶️ Local Training
 
 ```bash
-python -m src.run   # Generates Ornstein-Uhlenbeck process
+python -m src.run   # Generates Ornstein-Uhlenbeck process by default
 ```
 
 Optional flags:

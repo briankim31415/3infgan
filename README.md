@@ -8,8 +8,8 @@ This repository explores the use of **Neural SDEs as Infinite-Dimensional GANs**
 
 ## ✅ TODO
 
-- [ ] Test on mobility dataset
-- [ ] Compile OSR dataset
+-   [ ] Test on mobility dataset
+-   [ ] Compile OSR dataset
 
 ---
 
@@ -18,7 +18,7 @@ This repository explores the use of **Neural SDEs as Infinite-Dimensional GANs**
 This project builds on the paper:
 
 > **Neural SDEs as Infinite-Dimensional GANs**  
-> *Patrick Kidger et al.*  
+> _Patrick Kidger et al._  
 > [arXiv:2209.12894](https://arxiv.org/abs/2209.12894)
 
 The architecture leverages a **Neural SDE-based generator** and **Neural CDE-based discriminator**, enabling data generation in function space rather than fixed-dimensional representations.
@@ -27,13 +27,13 @@ The architecture leverages a **Neural SDE-based generator** and **Neural CDE-bas
 
 ## 🚀 Features
 
-- ✔️ Infinite-dimensional GAN framework (SDE/CDE architecture)
-- 🧠 Neural SDE Generator + Neural CDE Discriminator
-- 📉 Wasserstein loss implementation
-- 📊 Real-time experiment tracking with Weights & Biases
-- 🖼️ Synthetic sample generation + image logging
-- ⚙️ Modular config files via YAML config files
-- 🧮 Batch job support for UT TACC SLURM cluster
+-   ✔️ Infinite-dimensional GAN framework (SDE/CDE architecture)
+-   🧠 Neural SDE Generator + Neural CDE Discriminator
+-   📉 Wasserstein loss implementation
+-   📊 Real-time experiment tracking with Weights & Biases
+-   🖼️ Synthetic sample generation + image logging
+-   ⚙️ Modular config files via YAML config files
+-   🧮 Batch job support for UT TACC SLURM cluster
 
 ---
 
@@ -41,6 +41,11 @@ The architecture leverages a **Neural SDE-based generator** and **Neural CDE-bas
 
 ```
 infinite-gans/
+├── _Documentation/       # Markdown documents
+│   ├── breakdown_ryan.md    # Infinite GAN breakdown by Ryan Roby
+│   ├── datasets.md          # Overview of included datasets
+│   ├── results.md           # Discussion of current results
+│   ├── tasks.md             # Task documentation
 ├── src/                  # Core implementation
 │   ├── run.py               # Command-line interface
 │   ├── train.py             # Training loop
@@ -63,17 +68,18 @@ infinite-gans/
 ## 🛠️ Installation
 
 1. Clone the repository:
-   ```bash
-   git clone https://github.com/briankim31415/3infgan.git
-   cd 3infgan
-   ```
+
+    ```bash
+    git clone https://github.com/briankim31415/3infgan.git
+    cd 3infgan
+    ```
 
 2. Create a virtual environment and install dependencies:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate
-   pip install -r requirements.txt
-   ```
+    ```bash
+    python -m venv venv
+    source venv/bin/activate
+    pip install -r requirements.txt
+    ```
 
 ---
 
@@ -86,12 +92,14 @@ python -m src.run   # Generates Ornstein-Uhlenbeck process
 ```
 
 Optional flags:
-- ` --cfg_name=<config_name>`: Specify a config file to run.
-- `--use_wandb`: Enable Weights & Biases logging.
-- `--online`: Set Weights & Biases mode to online.
-- `--cfg_name`: Specify a config from `confs/`.
+
+-   ` --cfg_name=<config_name>`: Specify a config file to run.
+-   `--use_wandb`: Enable Weights & Biases logging.
+-   `--online`: Set Weights & Biases mode to online.
+-   `--cfg_name`: Specify a config from `confs/`.
 
 Example:
+
 ```bash
 python -m src.run --cfg_name=weather.yaml --use_wandb --online
 ```

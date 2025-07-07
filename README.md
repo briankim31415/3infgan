@@ -1,6 +1,6 @@
 # Infinite-GANs for Synthetic Urban Scene Generation
 
-This repository explores the use of **Neural SDEs as Infinite-Dimensional GANs** for generating synthetic data, with a long-term goal of producing **urban scene data** for research. The codebase supports training, sample generation, and evaluation using **Wasserstein distance**, with tracking via [Weights & Biases](https://wandb.ai/).
+This repository explores the use of **Neural SDEs as Infinite-Dimensional GANs** for generating synthetic data, with the goal of producing **urban scene data**. The codebase supports training, sample generation, and evaluation using **Wasserstein distance**, with tracking via [Weights & Biases](https://wandb.ai/).
 
 > Originally developed and tested on [UT Austin's TACC cluster](https://www.tacc.utexas.edu/), but can be run locally.
 
@@ -8,9 +8,6 @@ This repository explores the use of **Neural SDEs as Infinite-Dimensional GANs**
 
 - [ ] Test on mobility dataset
 - [ ] Compile OSR dataset
-- [ ] Add synthetic urban scene generation examples
-- [ ] Upload sample outputs to README
-- [ ] Add more configuration templates for new datasets
 
 ---
 

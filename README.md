@@ -1,5 +1,125 @@
-# Infinite GAN Testing (3rd iteration)
+# Infinite-GANs for Synthetic Urban Scene Generation
 
-Infinite GAN implementation forked off of `torchsde` example code. Runs on TACC and has logging through Weights & Biases.
+This repository explores the use of **Neural SDEs as Infinite-Dimensional GANs** for generating synthetic data, with the goal of producing **urban scene data**. The codebase supports training, sample generation, and evaluation using **Wasserstein distance**, with tracking via [Weights & Biases](https://wandb.ai/).
 
-`geolife.csv` dataset is local (too big to upload).
+> Originally developed and tested on [UT Austin's TACC cluster](https://www.tacc.utexas.edu/), but can be run locally.
+
+---
+
+## ✅ TODO
+
+- [ ] Test on mobility dataset
+- [ ] Compile OSR dataset
+
+---
+
+## 🔬 Background
+
+This project builds on the paper:
+
+> **Neural SDEs as Infinite-Dimensional GANs**  
+> *Patrick Kidger et al.*  
+> [arXiv:2209.12894](https://arxiv.org/abs/2209.12894)
+
+The architecture leverages a **Neural SDE-based generator** and **Neural CDE-based discriminator**, enabling data generation in function space rather than fixed-dimensional representations.
+
+---
+
+## 🚀 Features
+
+- ✔️ Infinite-dimensional GAN framework (SDE/CDE architecture)
+- 🧠 Neural SDE Generator + Neural CDE Discriminator
+- 📉 Wasserstein loss implementation
+- 📊 Real-time experiment tracking with Weights & Biases
+- 🖼️ Synthetic sample generation + image logging
+- ⚙️ Modular config files via YAML config files
+- 🧮 Batch job support for UT TACC SLURM cluster
+
+---
+
+## 📁 Project Structure
+
+```
+infinite-gans/
+├── src/                  # Core implementation
+│   ├── run.py               # Command-line interface
+│   ├── train.py             # Training loop
+│   ├── data.py              # Real data loader
+│   ├── generator.py         # Generator (Neural SDE)
+│   ├── discriminator.py     # Discriminator (Neural CDE)
+│   ├── losses.py            # Wasserstein loss
+│   ├── logging.py           # Sample logging
+│   └── utils.py             # Helper methods
+├── confs/                # Configuration files
+│   ├── default.yaml         # Default parameters
+│   ├── {dataset}.yaml       # Dataset-specific configs
+│   └── {dataset}_basic.yaml # Simplified logic configs
+├── data/                 # Datasets
+└── sbatch/               # SLURM batch scripts for TACC
+```
+
+---
+
+## 🛠️ Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/briankim31415/3infgan.git
+   cd 3infgan
+   ```
+
+2. Create a virtual environment and install dependencies:
+   ```bash
+   python -m venv venv
+   source venv/bin/activate
+   pip install -r requirements.txt
+   ```
+
+---
+
+## 🧪 Running the Code
+
+### ▶️ Local Training
+
+```bash
+python -m src.run   # Generates Ornstein-Uhlenbeck process
+```
+
+Optional flags:
+- ` --cfg_name=<config_name>`: Specify a config file to run.
+- `--use_wandb`: Enable Weights & Biases logging.
+- `--online`: Set Weights & Biases mode to online.
+- `--cfg_name`: Specify a config from `confs/`.
+
+Example:
+```bash
+python -m src.run --cfg_name=weather.yaml --use_wandb --online
+```
+
+### 🧬 TACC Cluster (SLURM)
+
+To run on the UT TACC cluster:
+
+```bash
+cd sbatch/
+sbatch <job_file>.sbatch
+```
+
+Edit the `.sbatch` file to point to the config and parameters you want to use.
+
+---
+
+## 📚 Citation
+
+If you use this codebase, please cite the original work:
+
+```
+@article{kidger2022neural,
+  title={Neural SDEs as Infinite-Dimensional GANs},
+  author={Kidger, Patrick and Foster, James and Lyons, Terry and Salvi, Corrado},
+  journal={arXiv preprint arXiv:2209.12894},
+  year={2022}
+}
+```
+
+---

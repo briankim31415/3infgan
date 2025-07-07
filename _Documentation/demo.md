@@ -15,7 +15,7 @@ python -m src.run --use_wandb --online
 The model is trained for 10,000 steps using batches of 1,024 samples, each consisting of 128 time steps. The entire training process completed in 4 hours and 7 minutes on TACC's Vista server. During training, Infinite GAN generates synthetic samples every 1,000 steps, allowing us to monitor its learning progression.
 
 <p align="center">
-  <img src="../figures/ou_basic_samples.gif" alt="Ornstein-Uhlenbeck process real vs fake samples" width="600"/>
+  <img src="../figures/ou_basic_samples.gif" alt="Ornstein-Uhlenbeck process real vs fake samples" width="300"/>
   <i style="color:gray;"><br>Fig. 1) Comparison of real vs fake samples from the Ornstein-Uhlenbeck process</i>
 </p>
 

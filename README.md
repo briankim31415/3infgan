@@ -42,10 +42,11 @@ The architecture leverages a **Neural SDE-based generator** and **Neural CDE-bas
 ```
 infinite-gans/
 ├── _Documentation/       # Markdown documents
+│   ├── problem_statement.md # Formulation of project goal
 │   ├── breakdown_ryan.md    # Infinite GAN breakdown by Ryan Roby
 │   ├── datasets.md          # Overview of included datasets
 │   ├── results.md           # Discussion of current results
-│   ├── tasks.md             # Task documentation
+│   └── tasks.md             # Task documentation
 ├── src/                  # Core implementation
 │   ├── run.py               # Command-line interface
 │   ├── train.py             # Training loop

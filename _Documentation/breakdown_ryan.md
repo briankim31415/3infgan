@@ -36,16 +36,16 @@ $V \in\mathbb{R}^v$: Initial Gaussian noise.
 
 1. **Initial layer ($\zeta_\theta$)**
    A neural network of with Lipswish activation after each linear layer except the last one which has no activation function.
-   $\zeta_\theta : \mathbb{R}^v \rightarrow \mathbb{R}^x$
+   $\quad \zeta_\theta : \mathbb{R}^v \rightarrow \mathbb{R}^x$
 2. **Drift process ($\mu_\theta$)**
    A neural network of with Lipswish activation after each linear layer. The last activation is a tanh activation function.
-   $\mu_\theta : \mathbb{R}^{h+1} \rightarrow \mathbb{R}^x$
+   $\quad \mu_\theta : \mathbb{R}^{h+1} \rightarrow \mathbb{R}^x$
 3. **Diffusion process ($\sigma_\theta$)**
    A neural network of with Lipswish activation after each linear layer. The last activation is a tanh activation function.
-   $\sigma_\theta : \mathbb{R}^{x+1} \rightarrow \mathbb{R}^{x\times w}$
+   $\quad \sigma_\theta : \mathbb{R}^{x+1} \rightarrow \mathbb{R}^{x\times w}$
 4. **Readout layer ($\alpha_\theta, \beta_\theta$)**
-   A linear layer which converts it from the signals in the hidden layer to real signal dimensions. Let us combine $\alpha_\theta$ and $\beta_\theta$, and represent it as $\gamma_\theta$
-   $\gamma_\theta : \mathbb{R}^{x} \rightarrow \mathbb{R}^{d}$
+   A linear layer which converts it from the signals in the hidden layer to real signal dimensions. Let us combine $\alpha_\theta$ and $\beta_\theta$, and represent it as $\gamma_\theta$.
+   $\quad \gamma_\theta : \mathbb{R}^{x} \rightarrow \mathbb{R}^{d}$
 
 #### Process breakdown:
 
@@ -104,7 +104,7 @@ $D \in\mathbb{R}^1$: Score value.
 3. **Readout layer ($m_\phi$)**
    A linear layer which converts it from the hidden dimensions to a 1D score.
    $m_\phi : \mathbb{R}^h \rightarrow \mathbb{R}^1$
-   > **Drift process ($f_\phi$)** has not been defined. It gets defined later down the line but its parameters are set to zero.
+    > **Drift process ($f_\phi$)** has not been defined. It gets defined later down the line but its parameters are set to zero.
 
 #### Process breakdown:
 

@@ -32,8 +32,7 @@ infinite-gans/
 │   ├── problem_statement.md # Formulation of project goal
 │   ├── breakdown_ryan.md    # Infinite GAN breakdown by Ryan Roby
 │   ├── datasets.md          # Overview of included datasets
-│   ├── results.md           # Discussion of current results
-│   └── tasks.md             # Task documentation
+│   └── demo.md              # Showcase of current results
 ├── src/                  # Core implementation
 │   ├── run.py               # Command-line interface
 │   ├── train.py             # Training loop
@@ -48,7 +47,8 @@ infinite-gans/
 │   ├── {dataset}.yaml       # Dataset-specific configs
 │   └── {dataset}_basic.yaml # Simplified logic configs
 ├── data/                 # Datasets
-└── sbatch/               # SLURM batch scripts for TACC
+├── sbatch/               # SLURM batch scripts for TACC
+└── figures/              # Figures for documentation
 ```
 
 ## 🛠️ Installation

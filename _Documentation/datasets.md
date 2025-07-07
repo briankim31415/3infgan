@@ -76,6 +76,8 @@ The [Ornstein-Uhlenbeck process](#11-ornsteinuhlenbeck-process), [Google Stock](
 
 -   **Dimensions**: 2
 -   **Data points**: Limited by API
+    -   _Overpass_: 10,000 queries/day & 1 GB data/day
+    -   _OpenRouteService_: ~40 queries/min & ~2,000 queries/day
 -   **Location precision**: Latitude, longitude in degrees
 -   **Time granularity**: N/A
 -   **Time span**: N/A

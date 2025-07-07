@@ -22,9 +22,7 @@ Let $\mathcal{Z}$ be the space of continuous time series (e.g., paths in an urba
 
 -   A **Neural SDE Generator**:
 
-    ```math
-    dX_t =f(t,X_t) + g(t,X_t)\circ dW_t, \quad X_0 \sim \mu
-    ```
+    $dX_t =f(t,X_t) + g(t,X_t)\circ dW_t, \quad X_0 \sim \mu$
 
     -   $f$ and $g$ are neural networks
     -   $W_t$ is Brownian motion
@@ -32,9 +30,9 @@ Let $\mathcal{Z}$ be the space of continuous time series (e.g., paths in an urba
     -   $\mu$ is the initial probability distribution
 
 -   A **Neural CDE Discriminator**:
-    ```math
-    H_0=\xi_\phi (Y_0), \quad dH_t = f_\phi(t,H_t)dt + g_\phi(t,H_t)\circ dY_t, \quad D=m_\phi . H_T
-    ```
+
+    $H_0=\xi_\phi (Y_0), \quad dH_t = f_\phi(t,H_t)dt + g_\phi(t,H_t)\circ dY_t, \quad D=m_\phi . H_T$
+    
     -   $\xi_\phi$, $f_\phi$, and $g_\phi$ are neural networks
     -   $H$ is the "well-behaved" path space
     -   $Y$ is the generator's output

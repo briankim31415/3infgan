@@ -4,6 +4,8 @@ This repository explores the use of **Neural SDEs as Infinite-Dimensional GANs**
 
 > Originally developed and tested on [UT Austin's TACC cluster](https://www.tacc.utexas.edu/), but can be run locally.
 
+---
+
 ## ✅ TODO
 
 - [ ] Test on mobility dataset
@@ -86,7 +88,7 @@ python -m src.run   # Generates Ornstein-Uhlenbeck process
 Optional flags:
 - ` --cfg_name=<config_name>`: Specify a config file to run.
 - `--use_wandb`: Enable Weights & Biases logging.
-- `--online`: Set WandB mode to online.
+- `--online`: Set Weights & Biases mode to online.
 - `--cfg_name`: Specify a config from `confs/`.
 
 Example:

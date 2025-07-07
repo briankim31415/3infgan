@@ -104,9 +104,7 @@ $D \in\mathbb{R}^1$: Score value.
 3. **Readout layer ($m_\phi$)**
    A linear layer which converts it from the hidden dimensions to a 1D score.
    $m_\phi : \mathbb{R}^h \rightarrow \mathbb{R}^1$
-   ::: warning
-   **Drift process ($f_\phi$)** has not been defined. It gets defined later down the line but its parameters are set to zero.
-   :::
+   > **Drift process ($f_\phi$)** has not been defined. It gets defined later down the line but its parameters are set to zero.
 
 #### Process breakdown:
 
@@ -121,17 +119,11 @@ $D \in\mathbb{R}^1$: Score value.
 
 3.  Computes the terminal state of the signals in the hidden space, $H_T$ using a controlled differential equation solver in the SDE setting.
 
-::: info
-It initially converts the interpolatable signal $Y$ into a vector field $K$. Then passes it into a adjoint sde solver. The solver uses _reversible heun_ method to solve the SDE.
+> **Info**: It initially converts the interpolatable signal $Y$ into a vector field $K$. Then passes it into a adjoint sde solver. The solver uses _reversible heun_ method to solve the SDE.
+>
+> When the interpolatable signal $Y$ is converted into a vector field, it initialises the diffusion term $q$ as a zero-like with the same dimension as the vector field and sets the drift term $s=g_\phi\times\frac {dY}{dt}$. Once it passes to the SDE solver, the drift term $s$ essentially becomes the diffusion term from the governing equations of discriminator model, but $f_\phi$ = 0.
 
-When the interpolatable signal $Y$ is converted into a vector field, it initialises the diffusion term $q$ as a zero-like with the same dimension as the vector field and sets the drift term $s=g_\phi\times\frac {dY}{dt}$. Once it passes to the SDE solver, the drift term $s$ essentially becomes the diffusion term from the governing equations of discriminator model, but $f_\phi$ = 0.
-:::
-
-::: warning
-**Doubt**
-
-Since the diffusion term of the vector field is set to zero, would it mean that the drift term in the governing equation $f_\phi$ is zero
-:::
+> **Doubt**: Since the diffusion term of the vector field is set to zero, would it mean that the drift term in the governing equation $f_\phi$ is zero
 
     hs = cdeint_test(Y, func, h0, Y.interval, method='reversible_heun', backend='torchsde', dt=1.0,
                         adjoint_method='adjoint_reversible_heun',
@@ -139,9 +131,7 @@ Since the diffusion term of the vector field is set to zero, would it mean that 
 
 4. The terminal states, $H_T$ are passed to a linear layer $m_\phi$ to get a final score. The scores are then averaged across the batch.
 
-::: info
-Given signals of similar dynamics ($dY$) and starting point($Y_0$), the eventual terminal point obtained through SDE integration must be similar. I believe this is the logic behind the scoring function.
-:::
+> **Info**: Given signals of similar dynamics ($dY$) and starting point($Y_0$), the eventual terminal point obtained through SDE integration must be similar. I believe this is the logic behind the scoring function.
 
     score = readout(hs[:, -1])
 
@@ -149,11 +139,11 @@ Given signals of similar dynamics ($dY$) and starting point($Y_0$), the eventual
 
 The objective function for the generator is:
 
-$\min_\theta [\mathbb{E}_{V,W}D_{\phi}(Y_\theta(V,W))]$
+$\min_\theta [E_{V,W} D_{\phi}(Y_\theta(V,W))]$
 
 and that of the discriminator is
 
-$\max_\phi [\mathbb{E}_{V,W}D_{\phi}(Y_\theta(V,W))-\mathbb{E}_zD_{\phi}(\hat z)]$
+$\max_\phi [E_{V,W}D_{\phi}(Y_\theta(V,W))-E_zD_{\phi}(\hat z)]$
 
 Where $\hat z$ are real signals.
 
@@ -202,6 +192,4 @@ model to predict the latter part of a time series given the first part, using ge
 
 Distance between probability distributions with respect to a kernel or feature map. They used the depth-5 signature transform as the feature map.Smaller values, meaning closer distributions, are better.
 
-::: warning
-**Doubt**
-Unclear as to how the loss from these tasks are fed to the generator or discriminator loss (regular summation or weighted summation)
+> **Doubt**: Unclear as to how the loss from these tasks are fed to the generator or discriminator loss (regular summation or weighted summation)

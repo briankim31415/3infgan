@@ -4,8 +4,6 @@ This repository explores the use of **Neural SDEs as Infinite-Dimensional GANs**
 
 > Originally developed and tested on [UT Austin's TACC cluster](https://www.tacc.utexas.edu/), but can be run locally.
 
----
-
 ## 🔬 Background
 
 This project builds on the paper:
@@ -16,8 +14,6 @@ This project builds on the paper:
 
 The architecture leverages a **Neural SDE-based generator** and **Neural CDE-based discriminator**, enabling data generation in function space rather than fixed-dimensional representations.
 
----
-
 ## 🚀 Features
 
 -   ✔️ Infinite-dimensional GAN framework (SDE/CDE architecture)
@@ -27,8 +23,6 @@ The architecture leverages a **Neural SDE-based generator** and **Neural CDE-bas
 -   🖼️ Synthetic sample generation + image logging
 -   ⚙️ Modular config files via YAML config files
 -   🧮 Batch job support for UT TACC SLURM cluster
-
----
 
 ## 📁 Project Structure
 
@@ -57,8 +51,6 @@ infinite-gans/
 └── sbatch/               # SLURM batch scripts for TACC
 ```
 
----
-
 ## 🛠️ Installation
 
 1. Clone the repository:
@@ -74,8 +66,6 @@ infinite-gans/
     source venv/bin/activate
     pip install -r requirements.txt
     ```
-
----
 
 ## 🧪 Running the Code
 
@@ -109,8 +99,6 @@ sbatch <job_file>.sbatch
 
 Edit the `.sbatch` file to point to the config and parameters you want to use.
 
----
-
 ## 📚 Citation
 
 If you use this codebase, please cite the original work:
@@ -123,5 +111,3 @@ If you use this codebase, please cite the original work:
   year={2022}
 }
 ```
-
----

@@ -62,12 +62,21 @@ def plot_wandb_samples(cfg, ts, step, generator, data_loader: Data, avg=False):
             kwargs = {'label': 'Real'} if i == 0 else {}
             plt.plot(ts.cpu(), real_sample_[:, v].cpu(), color='dodgerblue', linewidth=0.5, alpha=0.7, **kwargs)
         for i, generated_sample_ in enumerate(fake_samples):
-            kwargs = {'label': 'Generated'} if i == 0 else {}
+            kwargs = {'label': 'Fake'} if i == 0 else {}
             plt.plot(ts.cpu(), generated_sample_[:, v].cpu(), color='crimson', linewidth=0.5, alpha=0.7, **kwargs)
         plt.legend()
         channel_title = f" - {data_loader.cols[v - 1]}" if num_channels > 1 else ""
         title = f"{'[AVG] ' if avg else ''}Step {step}: {num_plot_samples} real vs fake samples{channel_title}"
+        fig, ax = plt.subplots()
+        ax.annotate(f"STEP {step}",
+                xy=(0, 1), xycoords='axes fraction',
+                xytext=(27, 21), textcoords='offset points',
+                ha='right', va='bottom',
+                fontsize=15,
+                bbox=dict(boxstyle="round,pad=0.2", fc="yellow", ec="black", lw=1))
         plt.title(title)
+        plt.xlabel("Time Steps")
+        plt.ylabel("Value")
         fig = wandb.Image(plt)
         if avg:
             key = f"Averaged model samples{channel_title}"

@@ -72,7 +72,7 @@ The [Ornstein-Uhlenbeck process](#11-ornsteinuhlenbeck-process), [Google Stock](
 -   **Time granularity**: 30 minutes
 -   **Time span**: 90 days
 -   **Location**: Anonymized city in Japan
--   **Description**: An extensive mobility dataset from an anonymized Japanese city, covering 100,000 users over 90 days. Each user's movement is mapped to 500x500m spatial tiles in a 200x200 grid, updated every 30 minutes. Includes dense metadata such as POI category counts per tile. Designed for urban-scale trajectory and flow modeling.
+-   **Description**: An extensive mobility dataset from an anonymized Japanese city, covering 100,000 users over 90 days. Each user's movement is mapped to 500x500m spatial tiles in a 200x200 grid, updated every 30 minutes. Includes counts of POI categories per tile from a list of 85 categories. Designed for urban-scale trajectory and flow modeling.
 
 ### 2.3 [Overpass](https://wiki.openstreetmap.org/wiki/Overpass_API) & [OpenRouteService](https://openrouteservice.org/) API (via [OpenStreetMap](https://www.openstreetmap.org/))
 

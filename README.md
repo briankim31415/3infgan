@@ -68,6 +68,33 @@ infinite-gans/
     pip install -r requirements.txt
     ```
 
+### 📊 Setup Weights & Biases API (on Linux/macOS)
+
+1. Add your Weights & Biases API key to your shell config file as an environment variable:
+
+    ```bash
+    export WANDB_API_KEY=your_api_key_here
+    ```
+
+2. Apply the changes:
+
+    ```bash
+    source ~/.bashrc  # or source ~/.zshrc
+    ```
+
+3. Verify environment variable is set correctly:
+
+    ```bash
+    # In the Terminal
+    echo $WANDB_API_KEY
+    ```
+
+    ```python
+    # In Python
+    import os
+    print(os.getenv("WANDB_API_KEY"))
+    ```
+
 ## 🧪 Running the Code
 
 ### ▶️ Local Training

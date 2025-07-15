@@ -1,0 +1,9 @@
+data_source: mobility
+dataset_size: 10000
+t_size: 100
+initial_noise_size: 5
+noise_size: 3
+
+# W&B
+wandb_proj: 3infgan_mobility
+wandb_name: mobility

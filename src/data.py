@@ -78,6 +78,9 @@ class Data():
         elif "geolife" in self.cfg.data_source:
             # Custom data loading for Geolife dataset
             ys = self.geolife_dataloader(self.cfg.t_size)
+        elif "mobility" in self.cfg.data_source:
+            # Custom data loading for Mobility dataset
+            ys = self.mobility_dataloader(self.cfg.t_size)
         else:
             # Read from csv dataset
             df = get_data_csv(self.cfg.data_source)
@@ -213,6 +216,27 @@ class Data():
         for start in selected_starts:
             traj_data = df.iloc[start:start + t_size][self.cols].to_numpy()
             sampled_data.append(traj_data)
+        sampled_data = np.array(sampled_data)
+
+        # Create and return data tensor
+        data_tensor = torch.tensor(sampled_data, dtype=torch.float32, device=self.cfg.device)
+        ys = data_tensor.transpose(0, 1)
+        return ys
+    
+    def mobility_dataloader(self, t_size):
+        """Custom dataloader for the Mobility dataset."""
+        if t_size > 100:
+            raise ValueError("t_size cannot be greater than 100 for the mobility dataset.")
+        df = get_data_csv(self.cfg.data_source)
+
+        # Get data samples
+        sampled_data = []
+        uid_groups = df.groupby("uid")
+        for uid, group in uid_groups:
+            # Pick random start index
+            start_idx = np.random.randint(0, len(group) - t_size)
+            sampled_data.append(group.iloc[start_idx:start_idx + t_size][["x", "y"]].to_numpy())
+            break
         sampled_data = np.array(sampled_data)
 
         # Create and return data tensor

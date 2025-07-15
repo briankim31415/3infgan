@@ -75,7 +75,7 @@ class Data():
             y0 = torch.rand(self.cfg.dataset_size, device=self.cfg.device).unsqueeze(-1) * 2 - 1
             ts = torch.linspace(0, self.cfg.t_size - 1, self.cfg.t_size, device=self.cfg.device)
             ys = torchsde.sdeint(sde_gen, y0, ts, dt=1e-1) # 64, 8192, 1
-        elif self.cfg.data_source == "geolife":
+        elif "geolife" in self.cfg.data_source:
             # Custom data loading for Geolife dataset
             ys = self.geolife_dataloader(self.cfg.t_size)
         else:
@@ -202,7 +202,7 @@ class Data():
             # If config selects only 1 column for data
             self.cols = [self.cfg.data_col]
         else:
-            self.cols = ["latitude", "longitude", "altitude"]
+            self.cols = ["latitude", "longitude"]
         
         traj_groups = df.groupby("trajectory_id").groups
         valid_starts = [indices[0] for indices in traj_groups.values() if len(indices) >= t_size]

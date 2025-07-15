@@ -236,7 +236,6 @@ class Data():
             # Pick random start index
             start_idx = np.random.randint(0, len(group) - t_size)
             sampled_data.append(group.iloc[start_idx:start_idx + t_size][["x", "y"]].to_numpy())
-            break
         sampled_data = np.array(sampled_data)
 
         # Create and return data tensor

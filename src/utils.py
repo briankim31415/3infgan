@@ -205,9 +205,6 @@ def save_models(generator, discriminator, data_loader, run_cfg):
     torch.save(generator.state_dict(), f'{models_path}/{run_cfg.wandb_name}_generator_{date_str}.pth')
     torch.save(discriminator.state_dict(), f'{models_path}/{run_cfg.wandb_name}_discriminator_{date_str}.pth')
 
-    # Save data loader
-    torch.save(data_loader.state_dict(), f'{models_path}/{run_cfg.wandb_name}_data_loader_{date_str}.pth')
-
     # Save mean and std of data loader in txt
     try:
         with open(f'{models_path}/{run_cfg.wandb_name}_data_loader_stats_{date_str}.txt', 'w') as f:

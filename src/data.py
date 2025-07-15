@@ -229,13 +229,16 @@ class Data():
             raise ValueError("t_size cannot be greater than 100 for the mobility dataset.")
         df = get_data_csv(self.cfg.data_source)
 
+        # Select x, y columns
+        self.cols = ["x", "y"]
+
         # Get data samples
         sampled_data = []
         uid_groups = df.groupby("uid")
         for uid, group in uid_groups:
             # Pick random start index
             start_idx = np.random.randint(0, len(group) - t_size)
-            sampled_data.append(group.iloc[start_idx:start_idx + t_size][["x", "y"]].to_numpy())
+            sampled_data.append(group.iloc[start_idx:start_idx + t_size][self.cols].to_numpy())
         sampled_data = np.array(sampled_data)
 
         # Create and return data tensor

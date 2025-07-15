@@ -13,7 +13,7 @@ It contains the following functions:
 import argparse
 from datetime import datetime
 from .train import train
-from .utils import load_config_file, load_csv_cfgs, overwrite_cfg, get_device
+from .utils import load_config_file, load_csv_cfgs, overwrite_cfg, get_device, save_models
 
 
 def parse_args():
@@ -63,10 +63,11 @@ def main():
     for run_cfg in config_runs:
 
         # Run training
-        generator, discriminator = train(run_cfg)
+        generator, discriminator, data_loader = train(run_cfg)
 
-        # Save models (todo later)
-    
+        # Save models
+        save_models(generator, discriminator, data_loader, run_cfg)
+
 
 
 if __name__ == "__main__":

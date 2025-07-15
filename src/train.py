@@ -295,4 +295,4 @@ def train(cfg):
 
     close_wandb(cfg)
 
-    return generator, discriminator
+    return generator, discriminator, data_loader

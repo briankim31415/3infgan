@@ -25,6 +25,7 @@ import random
 import numpy as np
 import pandas as pd
 from types import SimpleNamespace
+from datetime import datetime
 
 ###################
 # TorchSDE standard helper objects.
@@ -189,3 +190,33 @@ def get_data_csv(csv_name):
 
     # Read and return data from csv
     return pd.read_csv(file_path)
+
+###################
+# Model saving helper functions.
+###################
+
+def save_models(generator, discriminator, data_loader, run_cfg):
+    """Save models to the /models directory."""
+    # Get path of models directory
+    date_str = datetime.now().strftime("%m%d_%H%M")
+    models_path = './models'
+
+    # Save models
+    torch.save(generator.state_dict(), f'{models_path}/{run_cfg.wandb_name}_generator_{date_str}.pth')
+    torch.save(discriminator.state_dict(), f'{models_path}/{run_cfg.wandb_name}_discriminator_{date_str}.pth')
+
+    # Save data loader
+    torch.save(data_loader.state_dict(), f'{models_path}/{run_cfg.wandb_name}_data_loader_{date_str}.pth')
+
+    # Save mean and std of data loader in txt
+    try:
+        with open(f'{models_path}/{run_cfg.wandb_name}_data_loader_stats_{date_str}.txt', 'w') as f:
+            f.write(f'Mean: {data_loader.mean}\n')
+            f.write(f'Std: {data_loader.std}\n')
+            f.write(f'Cols: {data_loader.cols}\n')
+            f.write(f'Ts: {data_loader.ts}')
+    except:
+        print("Error saving data loader stats")
+
+
+

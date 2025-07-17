@@ -33,7 +33,8 @@ infinite-gans/
 │   ├── breakdown_ryan.md    # Infinite GAN breakdown by Ryan Roby
 │   ├── datasets.md          # Overview of included datasets
 │   ├── demo.md              # Showcase of current results
-│   └── tasks.md             # Project tasks timeline
+│   ├── tasks.md             # Project tasks timeline
+│   └── 2d_sim_guide.md      # Guided steps on how to generate 2D TSM sim model
 ├── src/                  # Core implementation
 │   ├── run.py               # Command-line interface
 │   ├── train.py             # Training loop

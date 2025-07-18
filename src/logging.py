@@ -58,32 +58,48 @@ def plot_wandb_samples(cfg, ts, step, generator, data_loader: Data, avg=False):
 
     # Plot each channel
     for v in channel_indices:
+        fig, ax = plt.subplots()
+        
+        # Plot real samples
         for i, real_sample_ in enumerate(real_samples):
             kwargs = {'label': 'Real'} if i == 0 else {}
-            plt.plot(ts.cpu(), real_sample_[:, v].cpu(), color='dodgerblue', linewidth=0.5, alpha=0.7, **kwargs)
+            ax.plot(ts.cpu(), real_sample_[:, v].cpu(), color='dodgerblue', linewidth=0.5, alpha=0.7, **kwargs)
+
+        # Plot fake samples
         for i, generated_sample_ in enumerate(fake_samples):
             kwargs = {'label': 'Fake'} if i == 0 else {}
-            plt.plot(ts.cpu(), generated_sample_[:, v].cpu(), color='crimson', linewidth=0.5, alpha=0.7, **kwargs)
-        plt.legend()
+            ax.plot(ts.cpu(), generated_sample_[:, v].cpu(), color='crimson', linewidth=0.5, alpha=0.7, **kwargs)
+
+        # Add legend
+        ax.legend()
+
+        # Set title and labels
         channel_title = f" - {data_loader.cols[v - 1]}" if num_channels > 1 else ""
         title = f"{'[AVG] ' if avg else ''}Step {step}: {num_plot_samples} real vs fake samples{channel_title}"
-        fig, ax = plt.subplots()
+        ax.set_title(title)
+        ax.set_xlabel("Time Steps")
+        ax.set_ylabel("Value")
+
+        # Add step number to plot
         ax.annotate(f"STEP {step}",
-                xy=(0, 1), xycoords='axes fraction',
-                xytext=(27, 21), textcoords='offset points',
-                ha='right', va='bottom',
-                fontsize=15,
-                bbox=dict(boxstyle="round,pad=0.2", fc="yellow", ec="black", lw=1))
-        plt.title(title)
-        plt.xlabel("Time Steps")
-        plt.ylabel("Value")
-        fig = wandb.Image(plt)
+                    xy=(0, 1), xycoords='axes fraction',
+                    xytext=(27, 21), textcoords='offset points',
+                    ha='right', va='bottom',
+                    fontsize=15,
+                    bbox=dict(boxstyle="round,pad=0.2", fc="yellow", ec="black", lw=1))
+
+        # Convert to wandb image and save to output directory
+        wandb_fig = wandb.Image(fig)
+
+        # Set key and image path
         if avg:
             key = f"Averaged model samples{channel_title}"
             image_path = f"{output_dir}/{cfg.wandb_name}_avg_c{v}_{step}.png"
         else:
             key = f"Samples{channel_title}"
             image_path = f"{output_dir}/{cfg.wandb_name}_c{v}_{step}.png"
-        wandb.log({key: fig})
-        plt.savefig(image_path)
-        plt.close()
+
+        # Log to wandb and save to output directory
+        wandb.log({key: wandb_fig})
+        fig.savefig(image_path)
+        plt.close(fig)

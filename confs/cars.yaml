@@ -1,0 +1,10 @@
+data_source: cars
+dataset_size: 500
+t_size: 100
+basic: false
+initial_noise_size: 5
+noise_size: 3
+
+# W&B
+wandb_proj: 3infgan_cars
+wandb_name: cars

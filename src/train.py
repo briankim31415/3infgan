@@ -75,6 +75,27 @@ def train(cfg):
             loss = wasserstein_loss(cfg, real_score, generated_score)
             loss.backward()
 
+            # Log gradient norms
+            total_discriminator_norm = 0.0
+            for p in discriminator.parameters():
+                if p.grad is not None:
+                    param_norm = p.grad.data.norm(2)  # L2 norm of the gradient
+                    total_discriminator_norm += param_norm.item() ** 2
+            total_discriminator_norm = total_discriminator_norm ** 0.5  # Final L2 norm of all gradients
+
+            total_generator_norm = 0.0
+            for p in generator.parameters():
+                if p.grad is not None:
+                    param_norm = p.grad.data.norm(2)  # L2 norm of the gradient
+                    total_generator_norm += param_norm.item() ** 2
+            total_generator_norm = total_generator_norm ** 0.5  # Final L2 norm of all gradients
+
+            if step % cfg.log_interval == 0 and cfg.use_wandb:
+                wandb.log({
+                    'discriminator_gradient_norm': total_discriminator_norm,
+                    'generator_gradient_norm': total_generator_norm
+                })
+
             # Update generator and discriminator.
             for param in generator.parameters():
                 param.grad *= -1
@@ -184,6 +205,20 @@ def train(cfg):
                 dis_loss_sum += dis_loss.item()
                 dis_loss.backward()
 
+                # Log discriminator gradient norms
+                total_discriminator_norm = 0.0
+                for p in discriminator.parameters():
+                    if p.grad is not None:
+                        param_norm = p.grad.data.norm(2)  # L2 norm of the gradient
+                        total_discriminator_norm += param_norm.item() ** 2
+                total_discriminator_norm = total_discriminator_norm ** 0.5  # Final L2 norm of all gradients
+
+                if step % cfg.log_interval == 0 and cfg.use_wandb:
+                    wandb.log({
+                        'discriminator_gradient_norm': total_discriminator_norm
+                    })
+
+                # Update discriminator
                 dis_optm.step()
                 dis_optm.zero_grad()
 
@@ -209,9 +244,22 @@ def train(cfg):
             gen_loss = wasserstein_loss(cfg, real_scores, fake_scores)
             gen_loss.backward()
 
+            # Log generator gradient norms
+            total_generator_norm = 0.0
+            for p in generator.parameters():
+                if p.grad is not None:
+                    param_norm = p.grad.data.norm(2)  # L2 norm of the gradient
+                    total_generator_norm += param_norm.item() ** 2
+            total_generator_norm = total_generator_norm ** 0.5  # Final L2 norm of all gradients
+
+            if step % cfg.log_interval == 0 and cfg.use_wandb:
+                wandb.log({
+                    'generator_gradient_norm': total_generator_norm
+                })
+
+            # Update generator
             for param in generator.parameters():
                 param.grad *= -1
-
             gen_optm.step()
             gen_optm.zero_grad()
 

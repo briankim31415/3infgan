@@ -75,7 +75,7 @@ class Data():
             y0 = torch.rand(self.cfg.dataset_size, device=self.cfg.device).unsqueeze(-1) * 2 - 1
             ts = torch.linspace(0, self.cfg.t_size - 1, self.cfg.t_size, device=self.cfg.device)
             ys = torchsde.sdeint(sde_gen, y0, ts, dt=1e-1) # 64, 8192, 1
-        elif "geolife" in self.cfg.data_source:
+        elif "geolife" or "cars" in self.cfg.data_source:
             # Custom data loading for Geolife dataset
             ys = self.geolife_dataloader(self.cfg.t_size)
         elif "mobility" in self.cfg.data_source:
@@ -195,9 +195,6 @@ class Data():
     
     def geolife_dataloader(self, t_size):
         """Custom dataloader for the Geolife dataset."""
-        if t_size > 100:
-            raise ValueError("t_size cannot be greater than 100 for the Geolife dataset.")
-
         # Read city-split data and identify trajectory start indices
         df = get_data_csv(self.cfg.data_source)
 
@@ -207,6 +204,7 @@ class Data():
         else:
             self.cols = ["latitude", "longitude"]
         
+        # Get trajectory start indices
         traj_groups = df.groupby("trajectory_id").groups
         valid_starts = [indices[0] for indices in traj_groups.values() if len(indices) >= t_size]
         selected_starts = np.random.choice(valid_starts, size=min(self.cfg.dataset_size, len(valid_starts)), replace=False)

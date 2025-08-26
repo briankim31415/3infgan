@@ -81,6 +81,9 @@ class Data():
         elif "mobility" in self.cfg.data_source:
             # Custom data loading for Mobility dataset
             ys = self.mobility_dataloader(self.cfg.t_size)
+        elif "osm" in self.cfg.data_source:
+            # Custom data loading for OSM dataset
+            ys = self.osm_dataloader(self.cfg.t_size)
         else:
             # Read from csv dataset
             df = get_data_csv(self.cfg.data_source)
@@ -205,7 +208,7 @@ class Data():
             self.cols = ["latitude", "longitude"]
         
         # Get trajectory start indices
-        traj_groups = df.groupby("trajectory_id").groups
+        traj_groups = df.groupby("route_idx").groups
         valid_starts = [indices[0] for indices in traj_groups.values() if len(indices) >= t_size]
         selected_starts = np.random.choice(valid_starts, size=min(self.cfg.dataset_size, len(valid_starts)), replace=False)
 
@@ -244,3 +247,22 @@ class Data():
         ys = data_tensor.transpose(0, 1)
         return ys
     
+    def osm_dataloader(self, t_size):
+        """Custom dataloader for the OSM dataset."""
+        # Read data
+        df = get_data_csv(self.cfg.data_source)
+        self.cols = ["longitude", "latitude"]
+
+        # Get data samples
+        sampled_data = []
+        traj_groups = df.groupby("route_idx")
+        for traj_id, group in traj_groups:
+            if len(group) >= t_size:
+                traj_data = group.iloc[:t_size][self.cols].to_numpy()
+                sampled_data.append(traj_data)
+
+        # Create and return data tensor
+        sampled_data = np.array(sampled_data)
+        data_tensor = torch.tensor(sampled_data, dtype=torch.float32, device=self.cfg.device)
+        ys = data_tensor.transpose(0, 1)
+        return ys

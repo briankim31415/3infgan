@@ -1,0 +1,13 @@
+data_source: osm
+dataset_size: 1000
+t_size: 100
+basic: true
+initial_noise_size: 5
+noise_size: 3
+
+num_steps: 5000
+swa_step_start: 2500
+
+# W&B
+wandb_proj: 3infgan_osm
+wandb_name: osm
